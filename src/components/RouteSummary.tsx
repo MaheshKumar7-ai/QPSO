@@ -51,14 +51,34 @@ export const RouteSummary: React.FC<RouteSummaryProps> = ({
     }
   };
 
-  if (!route || !route.isFeasible) {
+  if (!route) {
     return (
-      <div className="w-full bg-white border border-red-300 rounded-xl p-6 shadow-xs">
-        <h2 className="text-xl font-black text-red-700">
+      <div className="w-full bg-white border border-blue-200 rounded-2xl p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="p-3 bg-blue-50 text-blue-600 rounded-xl border border-blue-200 shrink-0">
+            <ArrowRight className="w-6 h-6" />
+          </div>
+          <div>
+            <h2 className="text-lg font-black text-slate-900 tracking-tight">
+              Ready to Optimize Route
+            </h2>
+            <p className="text-xs text-slate-600 font-medium mt-0.5">
+              Select your Start, Destination, Vehicle Type, and Goal above, then click <span className="font-extrabold text-blue-700">Calculate Route</span> to display the path on the map.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!route.isFeasible) {
+    return (
+      <div className="w-full bg-white border border-rose-300 rounded-2xl p-6 shadow-xs">
+        <h2 className="text-xl font-black text-rose-700">
           NO FEASIBLE ROUTE FOUND
         </h2>
         <p className="text-sm text-slate-700 mt-2 font-medium">
-          {route?.infeasibilityReason || 'No connected road path found under current vehicle restrictions or road incidents.'}
+          {route.infeasibilityReason || 'No connected road path found under current vehicle restrictions or road incidents.'}
         </p>
       </div>
     );

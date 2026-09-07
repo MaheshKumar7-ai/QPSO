@@ -197,7 +197,7 @@ export function computeEdgeMetaheuristicWeight(
 ): number {
   if (edge.incident && edge.incident.isBlocked) return Infinity;
 
-  // Check VRO restrictions
+  // Check vehicle restrictions
   const allowed = edge.vehicle_allowed ?? edge.allowedVehicles;
   if (allowed && !allowed.includes(vehicle)) return Infinity;
 

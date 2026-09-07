@@ -395,14 +395,6 @@ export default function App() {
     [graphData.vertices]
   );
 
-  // Initial Run on Mount
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      executeOptimization(appliedStartNode, appliedDestNode, appliedMode, appliedVehicle, graphData.edges);
-    }, 0);
-    return () => clearTimeout(timer);
-  }, []);
-
   // User Selection Handlers (State changes in form only; calculation triggered on Calculate Route)
   const handleStartSelect = (vertex: GraphVertex, customQueryName?: string, distanceKm: number = 0) => {
     setStartNode(vertex);
@@ -479,12 +471,13 @@ export default function App() {
 
   // Check if user has chosen settings that haven't been calculated yet
   const hasPendingChanges =
-    selectedVehicle !== appliedVehicle ||
+    activeRoute !== null &&
+    (selectedVehicle !== appliedVehicle ||
     optimizationMode !== appliedMode ||
     startNode.id !== appliedStartNode.id ||
     destNode.id !== appliedDestNode.id ||
     startQuery !== appliedStartNode.name ||
-    destQuery !== appliedDestNode.name;
+    destQuery !== appliedDestNode.name);
 
   // "Use Current Location" handler
   const handleUseCurrentLocation = () => {
@@ -879,20 +872,20 @@ export default function App() {
             </div>
           </div>
 
-          {/* VRO – Vehicle & Route Optimization Section */}
+          {/* Vehicle & Route Optimization Section */}
           <div className="space-y-4 pt-3 border-t border-slate-100">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-200 pb-2">
               <div>
                 <h2 className="text-sm font-black uppercase text-slate-900 tracking-wide flex items-center gap-2">
                   <span className="inline-block w-2.5 h-2.5 rounded-xs bg-blue-600"></span>
-                  VRO – Vehicle & Route Optimization
+                  Vehicle & Route Optimization
                 </h2>
                 <p className="text-[11px] text-slate-500 font-medium">
-                  VRO Filters: Road Suitability • Dimensional / Access Restrictions • Dynamic Congestion • Safety Constraints → Feasible Subgraph → QPSO
+                  Vehicle Filters: Road Suitability • Dimensional / Access Restrictions • Dynamic Congestion • Safety Constraints → Feasible Subgraph → QPSO
                 </p>
               </div>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 w-fit">
-                VRO Constraints → QPSO
+                Vehicle Constraints → QPSO
               </span>
             </div>
 
