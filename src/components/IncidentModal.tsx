@@ -58,7 +58,7 @@ export const IncidentModal: React.FC<IncidentModalProps> = ({
       type: 'flood',
       label: 'Seasonal Flash Flood / Waterlogging',
       icon: Waves,
-      mathEffect: 'High Risk (+7.0) & Speed restricted to 20 km/h.',
+      mathEffect: 'Road Impassable / Flooded (∞ Weight). Forces dynamic reroute detour.',
     },
     {
       type: 'hazardous_road',

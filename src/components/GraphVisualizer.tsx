@@ -932,9 +932,6 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({
                   strokeColor = '#ef4444';
                   strokeWidth = 4.5;
                   strokeDasharray = '6, 4';
-                } else if (isConnectedToStart) {
-                  strokeColor = '#10b981';
-                  strokeWidth = 3.5;
                 }
 
                 const { dist, timeMin, congestion, risk, combined } = getEdgeCombinedWeight(
@@ -1168,15 +1165,15 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({
                               width={badgeWidth}
                               height="22"
                               rx="5"
-                              fill={isRouteEdge ? '#1d4ed8' : isConnectedToStart ? '#065f46' : '#ffffff'}
-                              stroke={isRouteEdge ? '#1e40af' : isConnectedToStart ? '#047857' : '#94a3b8'}
-                              strokeWidth={isRouteEdge || isConnectedToStart ? '2' : '1.2'}
+                              fill={isRouteEdge ? '#1d4ed8' : '#ffffff'}
+                              stroke={isRouteEdge ? '#1e40af' : '#94a3b8'}
+                              strokeWidth={isRouteEdge ? '2' : '1.2'}
                               filter="url(#badgeShadow)"
                             />
                             <text
                               textAnchor="middle"
                               dy="4"
-                              fill={isRouteEdge || isConnectedToStart ? '#ffffff' : '#0f172a'}
+                              fill={isRouteEdge ? '#ffffff' : '#0f172a'}
                               fontSize="11"
                               fontWeight="900"
                               fontFamily="Arial, sans-serif"
@@ -1218,10 +1215,6 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({
                   fillColor = '#2563eb';
                   strokeColor = '#1e3a8a';
                   radius = 10.5;
-                } else if (isStartNeighbor) {
-                  fillColor = '#ecfdf5';
-                  strokeColor = '#059669';
-                  radius = 9.5;
                 }
 
                 const labelYOffset = pos.y > svgHeight - 65 ? -22 : 26;
@@ -1271,7 +1264,7 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({
                       r={radius}
                       fill={fillColor}
                       stroke={strokeColor}
-                      strokeWidth={isStart || isDest ? 3.5 : isStartNeighbor || isInRoute ? 2.5 : 2}
+                      strokeWidth={isStart || isDest ? 3.5 : isInRoute ? 2.5 : 2}
                       filter="url(#badgeShadow)"
                       className="transition-transform duration-150 group-hover:scale-125"
                     />
@@ -1330,32 +1323,6 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({
                       </g>
                     )}
 
-                    {/* Direct Neighbor of Start Tag (so default neighborhood is highlighted) */}
-                    {isStartNeighbor && !isInRoute && !isDest && (
-                      <g transform="translate(0, -22)">
-                        <rect
-                          x="-28"
-                          y="-9"
-                          width="56"
-                          height="16"
-                          rx="4"
-                          fill="#059669"
-                          opacity="0.9"
-                          filter="url(#badgeShadow)"
-                        />
-                        <text
-                          textAnchor="middle"
-                          dy="3"
-                          fill="#ffffff"
-                          fontSize="8.5"
-                          fontWeight="900"
-                          fontFamily="Arial, sans-serif"
-                        >
-                          NEIGHBOR
-                        </text>
-                      </g>
-                    )}
-
                     {/* High-Contrast Non-Overlapping Label with Thick White Outline */}
                     <text
                       x="0"
@@ -1381,8 +1348,6 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({
                           ? '#b91c1c'
                           : isInRoute
                           ? '#1d4ed8'
-                          : isStartNeighbor
-                          ? '#047857'
                           : '#0f172a'
                       }
                       fontSize="13"

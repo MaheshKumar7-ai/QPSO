@@ -511,7 +511,7 @@ export default function App() {
     const toNodeId = targetEdge.to;
 
     // 2. Set realistic mathematical factors based on incident type
-    let isBlocked = incidentType === 'road_block';
+    let isBlocked = incidentType === 'road_block' || incidentType === 'flood';
     let trafficMultiplier = 1.0;
     let riskAddition = 0;
 
@@ -521,30 +521,30 @@ export default function App() {
         trafficMultiplier = 99.0;
         riskAddition = 10.0;
         break;
+      case 'flood':
+        isBlocked = true;
+        trafficMultiplier = 99.0;
+        riskAddition = 10.0;
+        break;
       case 'heavy_traffic':
         isBlocked = false;
-        trafficMultiplier = 4.0;
-        riskAddition = 3.0;
+        trafficMultiplier = 12.0;
+        riskAddition = 5.0;
         break;
       case 'accident':
         isBlocked = false;
-        trafficMultiplier = 3.5;
-        riskAddition = 7.0;
-        break;
-      case 'flood':
-        isBlocked = false;
-        trafficMultiplier = 4.5;
-        riskAddition = 8.5;
+        trafficMultiplier = 10.0;
+        riskAddition = 8.0;
         break;
       case 'hazardous_road':
         isBlocked = false;
-        trafficMultiplier = 3.0;
-        riskAddition = 6.5;
+        trafficMultiplier = 8.0;
+        riskAddition = 9.0;
         break;
       default:
         isBlocked = false;
-        trafficMultiplier = 3.0;
-        riskAddition = 4.0;
+        trafficMultiplier = 8.0;
+        riskAddition = 6.0;
     }
 
     // 3. Update BOTH directions of this physical road segment in the network
@@ -675,13 +675,13 @@ export default function App() {
       setActiveRoute(combinedRoute);
       setBenchmarkResults(bench);
 
-      // Keep vehicle at current location in pause position on the new route
+      // Resume vehicle motion along the new rerouted path from current location
       setSimState(prev => {
         const vehicleCoords = currentV ? currentV.coords : (prev.currentCoords || (appliedStartNode ? appliedStartNode.coords : null));
         return {
           ...prev,
           isSimulating: true,
-          isPaused: true, // Pauses vehicle at current position on new route
+          isPaused: false, // Immediately moves along new rerouted path
           currentNodeIndex: newSegIdx,
           subStepIndex: 0,
           currentNodeId: rerouteStartNodeId,

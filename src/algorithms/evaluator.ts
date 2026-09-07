@@ -256,11 +256,11 @@ export function computeEdgeMetaheuristicWeight(
     return Number((fastCost * roadPref).toFixed(3));
   }
 
-  // 3. SAFER: Safety/hazard risk dominant with penalty on high-risk bottlenecks
+  // 3. SAFER: Safety/hazard risk dominant with strong penalty on high-risk bottlenecks
   if (mode === 'safer') {
-    const riskPenalty = effectiveRisk >= 4.0 ? Math.pow(effectiveRisk, 1.8) * edge.distanceKm * 0.5 : effectiveRisk * edge.distanceKm * 0.2;
+    const riskPenalty = effectiveRisk >= 3.0 ? Math.pow(effectiveRisk, 2.2) * edge.distanceKm * 0.9 : effectiveRisk * edge.distanceKm * 0.45;
     const roadPref = getVehicleRoadPreferenceMultiplier(vehicle, edge.roadType);
-    const safeCost = segAdjustedTimeMin * 0.3 + edge.distanceKm * 0.2 + riskPenalty;
+    const safeCost = segAdjustedTimeMin * 0.20 + edge.distanceKm * 0.12 + riskPenalty;
     return Number((safeCost * roadPref).toFixed(3));
   }
 

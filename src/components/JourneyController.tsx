@@ -89,7 +89,7 @@ export const JourneyController: React.FC<JourneyControllerProps> = ({
       type: 'flood',
       label: 'Flash Flood / Waterlogging',
       icon: Waves,
-      mathEffect: 'High Risk (+7.0) & Speed ≤ 20km/h',
+      mathEffect: 'Road Impassable / Flooded (∞ Weight). Forces dynamic detour.',
     },
     {
       type: 'hazardous_road',
