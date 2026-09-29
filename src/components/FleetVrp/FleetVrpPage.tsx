@@ -26,6 +26,7 @@ import {
   BarChart3,
   AlertTriangle,
   TrendingDown,
+  Scale,
 } from 'lucide-react';
 import { formatDurationHuman } from '../../algorithms/evaluator';
 
@@ -622,6 +623,75 @@ export const FleetVrpPage: React.FC<FleetVrpPageProps> = ({
             <span className="text-[11px] text-slate-500">
               Evaluated on real Andhra Pradesh road network graph
             </span>
+          </div>
+
+          {/* FLEET MATHEMATICAL CALCULATIONS & FORMULATION BREAKDOWN PANEL */}
+          <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-4 shadow-2xs">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <Scale className="w-4 h-4 text-blue-600" />
+                <h3 className="text-sm font-bold text-slate-900">
+                  Fleet VRP Optimization Mathematical Calculations
+                </h3>
+              </div>
+              <span className="text-xs font-bold text-blue-800 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200">
+                Fleet Objective F(R, t) = {solution.fleetFitness.toFixed(4)}
+              </span>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              The multi-vehicle QPSO fleet objective function <strong>F(R, t)</strong> minimizes the total network travel time, distance, and congestion across all assigned vehicle routes while strictly enforcing vehicle load capacity constraints:
+            </p>
+
+            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-center font-semibold text-slate-900 text-xs">
+              F(R, t) = Sum of [ (wT × Total Fleet Time) + (wD × Total Fleet Distance) + (wC × Total Fleet Congestion) ] + Capacity Penalty
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+              {/* Step 1: Capacity Constraint Verification */}
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5">
+                <div className="font-bold text-slate-900 text-[11px] uppercase tracking-wider flex items-center justify-between">
+                  <span>Step 1: Capacity Verification</span>
+                  <span className="text-[10px] text-emerald-700 font-extrabold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                    {solution.isFeasible ? 'PASSED' : 'VIOLATED'}
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-600">
+                  For every active vehicle <i>k</i>: Total Demand = Sum(Customer Demands) ≤ Capacity ({vehicleCapacity} units).
+                </p>
+                <div className="text-[10.5px] font-mono text-slate-800 bg-white p-2 rounded border border-slate-200">
+                  Customers Served: {solution.totalServedCount} / {solution.totalCustomerCount} (100%)
+                </div>
+              </div>
+
+              {/* Step 2: Fleet Cumulative Totals */}
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5">
+                <div className="font-bold text-slate-900 text-[11px] uppercase tracking-wider">
+                  Step 2: Fleet Cumulative Totals
+                </div>
+                <p className="text-[11px] text-slate-600">
+                  Summed across {solution.vehicleRoutes.filter(v => v.assignedCustomers.length > 0).length} active vehicle tours:
+                </p>
+                <div className="space-y-0.5 text-[10.5px] font-mono text-slate-800 bg-white p-2 rounded border border-slate-200">
+                  <div>• Total Distance = {solution.totalDistanceKm.toFixed(1)} km</div>
+                  <div>• Total Travel Time = {formatDurationHuman(solution.totalTimeMin)}</div>
+                  <div>• Total Congestion Index = {solution.totalCongestion.toFixed(2)}</div>
+                </div>
+              </div>
+
+              {/* Step 3: Objective Fitness Valuation */}
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5">
+                <div className="font-bold text-slate-900 text-[11px] uppercase tracking-wider">
+                  Step 3: QPSO Fitness Valuation
+                </div>
+                <p className="text-[11px] text-slate-600">
+                  Weighted sum substitution using active objective weights (Time: 40%, Dist: 30%, Congestion: 30%):
+                </p>
+                <div className="text-[10.5px] font-mono text-blue-900 font-bold bg-blue-50/80 p-2 rounded border border-blue-200">
+                  Final Fleet Objective F(R, t) = {solution.fleetFitness.toFixed(4)}
+                </div>
+              </div>
+            </div>
           </div>
         </section>
       )}

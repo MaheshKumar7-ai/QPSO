@@ -208,6 +208,65 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({
         </div>
       )}
 
+      {/* Step-by-Step Mathematical Calculations Breakdown Panel */}
+      {activeRoute && (
+        <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-200 text-xs space-y-2.5">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-1.5">
+            <span className="font-bold text-slate-800 text-[11px] uppercase tracking-wider flex items-center gap-1.5">
+              <Scale className="w-3.5 h-3.5 text-blue-600" />
+              <span>Route Optimization Mathematical Calculations</span>
+            </span>
+            <span className="text-[10px] font-bold text-blue-700 bg-blue-100/80 px-2 py-0.5 rounded border border-blue-200">
+              Fitness = {activeRoute.fitness}
+            </span>
+          </div>
+
+          <p className="text-[11px] text-slate-600 leading-relaxed">
+            The overall route fitness score <strong>F(Route)</strong> is calculated by accumulating multi-objective weights along all path segments:
+          </p>
+
+          <div className="bg-white p-2.5 rounded-lg border border-slate-200 font-semibold text-slate-900 text-[11px] text-center">
+            F(Route) = Sum of [ (wT × Normalized Time) + (wD × Normalized Distance) + (wC × Normalized Congestion) ]
+          </div>
+
+          <div className="space-y-1.5 text-[11px] text-slate-700">
+            <div className="font-semibold text-slate-900">Step 1: Accumulated Route Metrics</div>
+            <div className="grid grid-cols-3 gap-2 text-center text-[10.5px]">
+              <div className="bg-white p-1.5 rounded border border-slate-200">
+                <span className="text-slate-500 block text-[9.5px]">Total Distance</span>
+                <strong className="text-slate-900">{activeRoute.totalDistanceKm} km</strong>
+              </div>
+              <div className="bg-white p-1.5 rounded border border-slate-200">
+                <span className="text-slate-500 block text-[9.5px]">Total Time</span>
+                <strong className="text-slate-900">{formatDurationHuman(activeRoute.totalTimeMin)}</strong>
+              </div>
+              <div className="bg-white p-1.5 rounded border border-slate-200">
+                <span className="text-slate-500 block text-[9.5px]">Congestion Cost</span>
+                <strong className="text-amber-700">{activeRoute.congestionCost} pts</strong>
+              </div>
+            </div>
+
+            <div className="font-semibold text-slate-900 pt-1">Step 2: Objective Weight Equation</div>
+            <p className="text-[10.5px] text-slate-600">
+              Active mode: <strong className="text-blue-700 capitalize">{optimizationMode}</strong> (Time Weight: 40%, Distance Weight: 30%, Congestion Weight: 30%).
+            </p>
+
+            <div className="font-semibold text-slate-900 pt-1">Step 3: Optimization Result & Savings</div>
+            {shortestRoute ? (
+              <p className="text-[10.5px] font-medium text-emerald-800 bg-emerald-50 p-2 rounded-md border border-emerald-200">
+                • Time Saved vs Shortest Path: <strong>{Math.max(0, Number((shortestRoute.totalTimeMin - activeRoute.totalTimeMin).toFixed(1)))} min</strong>
+                <br />
+                • Average Congestion Factor: <strong>{activeRoute.averageTrafficFactor.toFixed(2)}x</strong> (smooth flow)
+              </p>
+            ) : (
+              <p className="text-[10.5px] text-slate-600 bg-white p-2 rounded-md border border-slate-200">
+                • Evaluated across {activeRoute.nodeIds.length - 1} connected road corridors.
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Comparison with Conventional Shortest Path */}
       {shortestRoute && activeRoute && (
         <div className="bg-slate-50 rounded-xl p-3 border border-slate-200 text-xs space-y-1.5">

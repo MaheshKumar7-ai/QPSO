@@ -104,6 +104,20 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({
   const [hoveredEdge, setHoveredEdge] = useState<GraphEdge | null>(null);
   const [hoveredNode, setHoveredNode] = useState<GraphVertex | null>(null);
 
+  // Connected/adjacent edges to the currently selected edge
+  const connectedEdges = useMemo(() => {
+    if (!selectedEdge) return [];
+    const fromNode = selectedEdge.from;
+    const toNode = selectedEdge.to;
+    return edges.filter(
+      e => e.id !== selectedEdge.id && (e.from === fromNode || e.to === fromNode || e.from === toNode || e.to === toNode)
+    );
+  }, [selectedEdge, edges]);
+
+  const connectedEdgeIdSet = useMemo(() => {
+    return new Set(connectedEdges.map(e => e.id));
+  }, [connectedEdges]);
+
   const svgWidth = 1600;
   const svgHeight = 820;
   const centerX = svgWidth / 2;
@@ -713,6 +727,7 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({
                 const isBypassedEdge = !isPathEdge && bypassedEdgePairSet.has(pairKey);
                 const isSelected = selectedEdge?.id === edge.id;
                 const isHovered = hoveredEdge?.id === edge.id;
+                const isConnectedToSelected = connectedEdgeIdSet.has(edge.id);
 
                 const p1 = nodePositions.get(edge.from);
                 const p2 = nodePositions.get(edge.to);
@@ -723,7 +738,15 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({
                 const midX = (p1.x + p2.x) / 2;
                 const midY = (p1.y + p2.y) / 2;
 
-                // Non-path background edges stay very light and subtle to keep focus on the active corridor
+                const { dist, timeMin, combined } = getEdgeCombinedWeight(
+                  edge,
+                  optimizationMode,
+                  vehicleType,
+                  trafficState,
+                  objectiveWeights
+                );
+
+                // Non-path background edges stay very light unless selected or connected to selected
                 let strokeColor = '#e2e8f0';
                 let strokeWidth = 0.8;
                 let strokeDasharray: string | undefined = undefined;
@@ -741,8 +764,13 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({
                   strokeOpacity = 1.0;
                 } else if (isSelected) {
                   strokeColor = '#f59e0b';
-                  strokeWidth = 4.0;
+                  strokeWidth = 4.5;
                   strokeOpacity = 1.0;
+                } else if (isConnectedToSelected) {
+                  strokeColor = '#a855f7';
+                  strokeWidth = 2.5;
+                  strokeDasharray = '5, 3';
+                  strokeOpacity = 0.95;
                 } else if (isPathEdge) {
                   // Handled separately by dedicated overlay for crisp rendering
                   strokeColor = '#bfdbfe';
@@ -755,7 +783,7 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({
                   strokeOpacity = 0.8;
                 } else if (isHovered) {
                   strokeColor = '#60a5fa';
-                  strokeWidth = 1.8;
+                  strokeWidth = 2.0;
                   strokeOpacity = 1.0;
                 }
 
@@ -778,7 +806,7 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({
                       x2={p2.x}
                       y2={p2.y}
                       stroke="transparent"
-                      strokeWidth="20"
+                      strokeWidth="22"
                     />
 
                     {/* Edge Main Line */}
@@ -794,6 +822,32 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({
                       strokeLinecap="round"
                       className="transition-colors duration-150"
                     />
+
+                    {/* Cost Badge for Selected or Connected/Adjacent Edges */}
+                    {(isSelected || isConnectedToSelected || isHovered) && !incident && (
+                      <g transform={`translate(${midX}, ${midY})`}>
+                        <rect
+                          x={isPathEdge ? "-30" : "-24"}
+                          y="-8"
+                          width={isPathEdge ? "60" : "48"}
+                          height="16"
+                          rx="4"
+                          fill={isSelected ? '#fef3c7' : isConnectedToSelected ? '#f3e8ff' : '#ffffff'}
+                          stroke={isSelected ? '#d97706' : isConnectedToSelected ? '#9333ea' : '#3b82f6'}
+                          strokeWidth="1.2"
+                          filter="url(#badgeShadow)"
+                        />
+                        <text
+                          textAnchor="middle"
+                          dy="3"
+                          fill={isSelected ? '#92400e' : isConnectedToSelected ? '#6b21a8' : '#1e3a8a'}
+                          fontSize="7.5"
+                          fontWeight="800"
+                        >
+                          {isPathEdge ? `${dist}k · f=${combined}` : `f=${combined}`}
+                        </text>
+                      </g>
+                    )}
 
                     {/* Incident Badge */}
                     {incident && (
@@ -1131,50 +1185,189 @@ export const GraphVisualizer: React.FC<GraphVisualizerProps> = ({
                 </button>
               </div>
 
-              {/* Edge Metrics Grid */}
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 space-y-0.5">
-                  <div className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
-                    <Navigation className="w-3 h-3 text-blue-600" />
-                    <span>Distance</span>
-                  </div>
-                  <div className="text-xs font-bold text-slate-900">{dist} km</div>
-                </div>
+              {/* Path Edges Display Full Detailed Info, Non-Path Edges Display ONLY Cost Score */}
+              {isRouteEdge ? (
+                <>
+                  {/* Full Detailed Edge Metrics Grid for Optimized Path Edges */}
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-blue-50/60 p-2 rounded-lg border border-blue-200 space-y-0.5">
+                      <div className="text-[10px] text-blue-700 font-medium flex items-center gap-1">
+                        <Navigation className="w-3 h-3 text-blue-600" />
+                        <span>Distance</span>
+                      </div>
+                      <div className="text-xs font-bold text-slate-900">{dist} km</div>
+                    </div>
 
-                <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 space-y-0.5">
-                  <div className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
-                    <Clock className="w-3 h-3 text-blue-600" />
-                    <span>Travel Time</span>
-                  </div>
-                  <div className="text-xs font-bold text-slate-900">{timeMin} min</div>
-                </div>
+                    <div className="bg-blue-50/60 p-2 rounded-lg border border-blue-200 space-y-0.5">
+                      <div className="text-[10px] text-blue-700 font-medium flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-blue-600" />
+                        <span>Travel Time</span>
+                      </div>
+                      <div className="text-xs font-bold text-slate-900">{timeMin} min</div>
+                    </div>
 
-                <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 space-y-0.5">
-                  <div className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
-                    <Activity className="w-3 h-3 text-amber-600" />
-                    <span>Speed</span>
+                    <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 space-y-0.5">
+                      <div className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
+                        <Activity className="w-3 h-3 text-amber-600" />
+                        <span>Speed</span>
+                      </div>
+                      <div className="text-xs font-bold text-slate-900">
+                        {currentSpeed} km/h <span className="text-[10px] text-slate-500 font-normal">({selectedEdge.baseSpeedKmH} max)</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-blue-100/70 p-2 rounded-lg border border-blue-300 space-y-0.5">
+                      <div className="text-[10px] text-blue-800 font-medium flex items-center gap-1">
+                        <Compass className="w-3 h-3 text-blue-700" />
+                        <span>Edge Cost f(e,t)</span>
+                      </div>
+                      <div className="text-xs font-black text-blue-900">{combined}</div>
+                    </div>
                   </div>
-                  <div className="text-xs font-bold text-slate-900">
-                    {currentSpeed} km/h <span className="text-[10px] text-slate-500 font-normal">({selectedEdge.baseSpeedKmH} max)</span>
+
+                  {/* Traffic State Info */}
+                  <div className="flex items-center justify-between px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700">
+                    <span className="font-medium">Traffic State:</span>
+                    <span className={`font-bold ${isBlocked ? 'text-red-700' : congestion >= 1.4 ? 'text-amber-700' : 'text-blue-700'}`}>
+                      {trafficLabel} ({congestion.toFixed(2)}x)
+                    </span>
+                  </div>
+                </>
+              ) : (
+                /* Prominent ONLY COST SCORE Card for Non-Path Edges */
+                <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-3.5 text-center space-y-1 shadow-2xs">
+                  <div className="text-[11px] font-extrabold text-amber-900 uppercase tracking-wider flex items-center justify-center gap-1">
+                    <Compass className="w-4 h-4 text-amber-600" />
+                    <span>Edge Cost Score f(e,t)</span>
+                  </div>
+                  <div className="text-3xl font-black text-amber-950 tabular-nums tracking-tight">
+                    {combined}
+                  </div>
+                  <p className="text-[10px] text-amber-700 font-semibold">
+                    Multi-objective weight formulation score
+                  </p>
+                </div>
+              )}
+
+              {/* Step-by-Step Mathematical Calculation Breakdown (in clear human text format) */}
+              {(() => {
+                const normT = Number((timeMin / 110.0).toFixed(4));
+                const normD = Number((dist / 96.0).toFixed(4));
+                const congCost = Math.max(0, (congestion - 1.0) * dist);
+                const normC = Number((congCost / 45.0).toFixed(4));
+                const wT = objectiveWeights?.wT ?? 0.40;
+                const wD = objectiveWeights?.wD ?? 0.30;
+                const wC = objectiveWeights?.wC ?? 0.30;
+                const termT = Number((wT * normT).toFixed(4));
+                const termD = Number((wD * normD).toFixed(4));
+                const termC = Number((wC * normC).toFixed(4));
+
+                return (
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2 text-xs">
+                    <div className="font-bold text-slate-800 text-[11px] uppercase tracking-wider flex items-center justify-between border-b border-slate-200 pb-1">
+                      <span>Mathematical Calculation</span>
+                      <span className="text-[10px] text-blue-700 font-extrabold bg-blue-50 px-1.5 py-0.5 rounded">
+                        f(e,t) = {combined}
+                      </span>
+                    </div>
+
+                    <p className="text-[11px] text-slate-600 leading-snug">
+                      The edge cost score <strong>f(e, t)</strong> is computed using the multi-objective weighted sum formula:
+                    </p>
+
+                    <div className="bg-white p-2 rounded-lg border border-slate-200 text-center font-semibold text-slate-900 text-[11px]">
+                      f(e, t) = (wT × Normalized Time) + (wD × Normalized Distance) + (wC × Normalized Congestion)
+                    </div>
+
+                    <div className="space-y-1 text-[11px] text-slate-700">
+                      <div className="font-semibold text-slate-900">Step 1: Normalization</div>
+                      <ul className="list-disc list-inside space-y-0.5 text-slate-600 pl-1 text-[10px]">
+                        <li><strong>Time:</strong> {timeMin} min ÷ 110 min = <strong>{normT}</strong></li>
+                        <li><strong>Distance:</strong> {dist} km ÷ 96 km = <strong>{normD}</strong></li>
+                        <li><strong>Congestion:</strong> {congCost.toFixed(1)} penalty ÷ 45 = <strong>{normC}</strong></li>
+                      </ul>
+
+                      <div className="font-semibold text-slate-900 pt-1">Step 2: Weight Multiplication</div>
+                      <div className="bg-slate-100/80 p-2.5 rounded-md font-mono text-[10.5px] text-slate-800 space-y-0.5">
+                        <div>= ({wT} × {normT}) + ({wD} × {normD}) + ({wC} × {normC})</div>
+                        <div>= {termT} + {termD} + {termC}</div>
+                        <div className="font-bold text-blue-800 pt-0.5 border-t border-slate-200">
+                          = {combined} Final Edge Cost Score
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Adjacent / Connected Edges Cost Comparison Table */}
+              {connectedEdges.length > 0 && (
+                <div className="space-y-1.5 pt-2 border-t border-slate-100">
+                  <div className="flex items-center justify-between text-[11px] font-bold text-purple-900">
+                    <span className="flex items-center gap-1 uppercase tracking-wider">
+                      <Route className="w-3.5 h-3.5 text-purple-600" />
+                      Adjacent Connected Edges ({connectedEdges.length})
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-normal">Click row to inspect</span>
+                  </div>
+
+                  <div className="max-h-36 overflow-y-auto border border-purple-200 rounded-lg bg-purple-50/40">
+                    <table className="w-full text-left text-[11px] tabular-nums">
+                      <thead className="bg-purple-100/80 text-purple-950 font-bold sticky top-0">
+                        <tr>
+                          <th className="p-1.5">Connected Edge</th>
+                          <th className="p-1.5">Dist</th>
+                          <th className="p-1.5">Time</th>
+                          <th className="p-1.5 text-right">Edge Cost f(e,t)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-purple-100">
+                        {connectedEdges.map(adjEdge => {
+                          const adjMetrics = getEdgeCombinedWeight(
+                            adjEdge,
+                            optimizationMode,
+                            vehicleType,
+                            trafficState,
+                            objectiveWeights
+                          );
+                          const adjFrom = vertices.find(v => v.id === adjEdge.from)?.name || adjEdge.from;
+                          const adjTo = vertices.find(v => v.id === adjEdge.to)?.name || adjEdge.to;
+                          const adjPairKey = [adjEdge.from, adjEdge.to].sort().join('__');
+                          const isAdjPathEdge = activePathEdgeIdSet.has(adjEdge.id) || activePathPairMap.has(adjPairKey);
+
+                          return (
+                            <tr
+                              key={adjEdge.id}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedEdge(adjEdge);
+                                if (onSelectEdge) onSelectEdge(adjEdge);
+                              }}
+                              className="hover:bg-purple-100/90 cursor-pointer transition-colors text-slate-800"
+                            >
+                              <td className="p-1.5 font-semibold whitespace-nowrap flex items-center gap-1">
+                                <span>{adjFrom} ➔ {adjTo}</span>
+                                {isAdjPathEdge && (
+                                  <span className="px-1 py-0.2 bg-blue-100 text-blue-800 text-[9px] font-extrabold rounded">PATH</span>
+                                )}
+                              </td>
+                              <td className="p-1.5 whitespace-nowrap text-slate-600">
+                                {isAdjPathEdge ? `${adjMetrics.dist} km` : '—'}
+                              </td>
+                              <td className="p-1.5 whitespace-nowrap text-slate-600">
+                                {isAdjPathEdge ? `${adjMetrics.timeMin} m` : '—'}
+                              </td>
+                              <td className="p-1.5 text-right font-bold text-purple-900 whitespace-nowrap">
+                                {adjMetrics.combined}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
-
-                <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 space-y-0.5">
-                  <div className="text-[10px] text-slate-500 font-medium flex items-center gap-1">
-                    <Compass className="w-3 h-3 text-blue-600" />
-                    <span>Edge Weight f(e,t)</span>
-                  </div>
-                  <div className="text-xs font-bold text-blue-700">{combined}</div>
-                </div>
-              </div>
-
-              {/* Traffic State Info */}
-              <div className="flex items-center justify-between px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700">
-                <span className="font-medium">Traffic State:</span>
-                <span className={`font-bold ${isBlocked ? 'text-red-700' : congestion >= 1.4 ? 'text-amber-700' : 'text-blue-700'}`}>
-                  {trafficLabel} ({congestion.toFixed(2)}x)
-                </span>
-              </div>
+              )}
 
               {/* Incident Box (if affected) */}
               {incident && (

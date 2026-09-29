@@ -560,25 +560,6 @@ export function App() {
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setShowIncidentDrawer(!showIncidentDrawer)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer whitespace-nowrap ${
-                activeIncidentEdges.length > 0
-                  ? 'bg-red-50 text-red-700 border-red-200'
-                  : showIncidentDrawer
-                  ? 'bg-amber-50 text-amber-800 border-amber-200'
-                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-              }`}
-            >
-              <AlertTriangle className="w-3.5 h-3.5" />
-              <span>
-                {activeIncidentEdges.length > 0
-                  ? `Incidents (${activeIncidentEdges.length})`
-                  : 'Incident Test'}
-              </span>
-            </button>
-
-            <button
-              type="button"
               onClick={() => setShowAdvancedParams(!showAdvancedParams)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer whitespace-nowrap ${
                 showAdvancedParams
