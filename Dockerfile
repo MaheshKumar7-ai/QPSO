@@ -1,27 +1,19 @@
-# Stage 1: Build the React application
-FROM node:20-alpine AS builder
+# Node.js production image for Cloud Run
+FROM node:20-alpine
 
 WORKDIR /app
 
-# Install build dependencies
-COPY package.json ./
+# Copy package descriptors and install dependencies
+COPY package*.json ./
 RUN npm install
 
-# Copy source code and build
+# Copy application source code and build Vite static bundle
 COPY . .
 RUN npm run build
 
-# Stage 2: Serve with Nginx
-FROM nginx:alpine
+# Default PORT for local testing, Cloud Run overrides PORT dynamically
+ENV PORT=3000
+EXPOSE 3000
 
-# Copy custom nginx configuration
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Copy build artifacts from builder stage
-COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Expose HTTP port
-EXPOSE 80
-
-# Run nginx in foreground
-CMD ["nginx", "-g", "daemon off;"]
+# Start production Express server
+CMD ["node", "server.js"]

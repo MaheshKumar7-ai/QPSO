@@ -1,8 +1,26 @@
+import {
+  DayType,
+  ObjectiveWeights,
+  TrafficIncidentState,
+  EdgeTrafficSnapshot,
+  TrafficState,
+  DynamicEdgeState,
+} from './traffic';
+
+export type {
+  DayType,
+  ObjectiveWeights,
+  TrafficIncidentState,
+  EdgeTrafficSnapshot,
+  TrafficState,
+  DynamicEdgeState,
+};
+
 export type VehicleType = 'car' | 'bike' | 'bus' | 'truck' | 'emergency';
 
-export type OptimizationMode = 'shortest' | 'fastest' | 'balanced' | 'safer';
+export type OptimizationMode = 'traffic' | 'shortest' | 'fastest' | 'balanced' | 'safer';
 
-export type IncidentType = 'road_block' | 'heavy_traffic' | 'accident' | 'flood' | 'hazardous_road';
+export type IncidentType = 'road_block' | 'heavy_traffic' | 'accident';
 
 export interface GeoPoint {
   lat: number;
@@ -29,14 +47,13 @@ export interface GraphEdge {
   geometry: GeoPoint[];
   trafficFactor: number; // 1.0 = free-flow, 1.5 = moderate, 2.5 = heavy
   riskScore: number; // 1 (safest) to 10 (hazardous)
-  // Standardized Edge-Level Historical Attributes (Simulated Historical Data for Demonstration)
   distance: number; // km
-  travel_time: number; // minutes
-  historical_congestion: number; // historical congestion delay factor (e.g. 1.05 to 1.85)
+  travel_time: number; // minutes (free-flow base travel time)
+  historical_congestion: number; // historical congestion factor (e.g. 1.05 to 1.85)
   historical_risk: number; // historical risk/accident index (1.0 to 10.0)
   road_condition: 'excellent' | 'good' | 'fair' | 'poor';
-  vehicle_allowed: VehicleType[];
-  vehicle_suitability: Record<VehicleType, number>; // 0.0 (unsuitable) to 1.0 (ideal)
+  vehicle_allowed?: VehicleType[];
+  vehicle_suitability?: Record<VehicleType, number>;
   incident?: {
     type: IncidentType;
     description: string;
@@ -49,11 +66,11 @@ export interface GraphEdge {
 
 export interface NormalizedEdgeMetrics {
   edgeId: string;
-  normalizedDistance: number; // D(e) in [0, 1]
-  normalizedTravelTime: number; // T(e) in [0, 1]
-  normalizedCongestion: number; // C(e) in [0, 1]
-  normalizedRisk: number; // R(e) in [0, 1]
-  dynamicWeight: number; // W(e) = αT + βC + γR + δD
+  normalizedDistance: number; // D_norm(e)
+  normalizedTravelTime: number; // T_norm(e, t)
+  normalizedCongestion: number; // C_norm(e, t)
+  normalizedRisk: number;
+  dynamicWeight: number; // f(e, t) = wT*T_norm + wD*D_norm + wC*C_norm
 }
 
 export interface RouteSegment {
@@ -62,7 +79,13 @@ export interface RouteSegment {
   edge: GraphEdge;
   segmentDistanceKm: number;
   baseTimeMin: number;
-  adjustedTimeMin: number;
+  adjustedTimeMin: number; // dynamic travelTime(e, t)
+  congestionIndex?: number; // dynamic congestion(e, t)
+  currentSpeedKmH?: number; // dynamic currentSpeed(e, t)
+  normalizedTime?: number;
+  normalizedDistance?: number;
+  normalizedCongestion?: number;
+  segmentObjectiveCost?: number;
   effectiveRisk: number;
   isBlocked: boolean;
 }
@@ -70,16 +93,22 @@ export interface RouteSegment {
 export interface EvaluatedRoute {
   nodeIds: string[];
   segments: RouteSegment[];
-  totalDistanceKm: number;
-  baseTimeMin: number;
-  totalTimeMin: number;
+  totalDistanceKm: number;        // D(R) = sum of edge distances
+  baseTimeMin: number;            // sum of free-flow travel times
+  totalTimeMin: number;           // T(R, t) = sum of dynamic edge travel times
+  totalCongestion: number;        // C(R, t) = sum of dynamic edge congestion indices
+  normalizedTime: number;         // T_norm(R, t)
+  normalizedDistance: number;     // D_norm(R)
+  normalizedCongestion: number;   // C_norm(R, t)
+  objectiveWeights: ObjectiveWeights; // { wT, wD, wC } with wT + wD + wC = 1
+  trafficTimestamp?: string;
   averageTrafficFactor: number;
   averageRisk: number;
   avgHistoricalCongestion?: number;
   avgHistoricalRisk?: number;
   congestionCost: number;
   riskCost: number;
-  fitness: number;
+  fitness: number;                // F(R, t) = wT*T_norm(R,t) + wD*D_norm(R) + wC*C_norm(R,t)
   isFeasible: boolean;
   infeasibilityReason?: string;
   mode?: OptimizationMode;
@@ -88,10 +117,10 @@ export interface EvaluatedRoute {
 }
 
 export interface ModeWeights {
-  timeWeight: number;     // w1
-  distanceWeight: number; // w2
-  trafficWeight: number;  // w3
-  riskWeight: number;     // w4
+  timeWeight: number;     // wT
+  distanceWeight: number; // wD
+  trafficWeight: number;  // wC
+  riskWeight: number;     // isolated (0 in core SIH objective)
 }
 
 export interface QpsoIterationRecord {
@@ -122,7 +151,6 @@ export interface QpsoParticleCalculationState {
   delta: number;
   sign: number;
   x_next: number;
-  // Trained Traffic Model Guided Fields
   isModelGuided?: boolean;
   modelPredictedCongestion?: number;
   modelPredictedRisk?: number;
@@ -139,6 +167,11 @@ export interface QpsoResult {
   iterationsCount: number;
   allCandidateRoutesEvaluated: number;
   sampleCalculation?: QpsoParticleCalculationState;
+  trafficState?: TrafficState;
+  objectiveWeights?: ObjectiveWeights;
+  seed?: number;
+  repairCount?: number;
+  feasibleSolutionCount?: number;
   trainedModelMetrics?: {
     modelType: string;
     r2Score: number;
@@ -153,7 +186,13 @@ export interface AlgorithmBenchmarkResult {
   algorithm: 'Dijkstra' | 'A*' | 'GA' | 'PSO' | 'QPSO' | 'ACO' | string;
   fullName?: string;
   distanceKm: number;
+  baseTimeMin?: number;
   travelTimeMin: number;
+  totalCongestion?: number;
+  normalizedTime?: number;
+  normalizedDistance?: number;
+  normalizedCongestion?: number;
+  congestionDelayMin?: number;
   fitness: number;
   runtimeMs: number;
   nodesEvaluated: number;
@@ -161,7 +200,7 @@ export interface AlgorithmBenchmarkResult {
   searchStrategy: string;
   status: 'Complete' | 'Infeasible';
   routeNodeIds: string[];
-  convergenceCurve?: number[]; // fitness over iterations
+  convergenceCurve?: number[];
   isBest?: boolean;
 }
 
@@ -189,8 +228,9 @@ export interface DynamicRerouteState {
 }
 
 export interface MultiModeRoutes {
-  fastest: EvaluatedRoute | null;
-  balanced: EvaluatedRoute | null;
-  safer: EvaluatedRoute | null;
-  shortest: EvaluatedRoute | null;
+  traffic?: EvaluatedRoute | null;
+  fastest?: EvaluatedRoute | null;
+  balanced?: EvaluatedRoute | null;
+  safer?: EvaluatedRoute | null;
+  shortest?: EvaluatedRoute | null;
 }

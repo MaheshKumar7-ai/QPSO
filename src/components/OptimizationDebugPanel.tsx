@@ -65,34 +65,14 @@ export const OptimizationDebugPanel: React.FC<OptimizationDebugPanelProps> = ({
     objectiveDesc: string;
   }[] = [
     {
-      mode: 'fastest',
-      label: 'Fastest Route',
+      mode: 'traffic',
+      label: 'Traffic Congestion Optimized',
       icon: Zap,
-      color: 'text-amber-700 bg-amber-50 border-amber-300',
-      bgBadge: 'bg-amber-100 text-amber-900 border-amber-200',
-      borderActive: 'ring-2 ring-amber-500 border-amber-500 bg-amber-50/30',
-      weights: { time: 0.6, congestion: 0.2, risk: 0.05, distance: 0.15 },
-      objectiveDesc: 'Minimizes travel time and congestion delays',
-    },
-    {
-      mode: 'balanced',
-      label: 'Balanced Route',
-      icon: Gauge,
       color: 'text-blue-700 bg-blue-50 border-blue-300',
       bgBadge: 'bg-blue-100 text-blue-900 border-blue-200',
       borderActive: 'ring-2 ring-blue-500 border-blue-500 bg-blue-50/30',
-      weights: { time: 0.3, congestion: 0.3, risk: 0.25, distance: 0.15 },
-      objectiveDesc: 'Compromise between time, congestion, and safety',
-    },
-    {
-      mode: 'safer',
-      label: 'Safer Route',
-      icon: ShieldCheck,
-      color: 'text-emerald-700 bg-emerald-50 border-emerald-300',
-      bgBadge: 'bg-emerald-100 text-emerald-900 border-emerald-200',
-      borderActive: 'ring-2 ring-emerald-500 border-emerald-500 bg-emerald-50/30',
-      weights: { time: 0.1, congestion: 0.25, risk: 0.55, distance: 0.1 },
-      objectiveDesc: 'Strictly avoids accident blackspots and hazardous roads',
+      weights: { time: 0.45, congestion: 0.40, distance: 0.10, risk: 0.05 },
+      objectiveDesc: 'Minimizes travel time delays and avoids bottleneck congestion',
     },
   ];
 
@@ -133,8 +113,8 @@ export const OptimizationDebugPanel: React.FC<OptimizationDebugPanelProps> = ({
         </div>
       </div>
 
-      {/* Grid of 3 Independent Modes + 1 Shortest Baseline */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
+      {/* Traffic Congestion Optimized Route Card + Shortest Baseline */}
+      <div className="grid grid-cols-1 gap-3.5">
         {modeConfigs.map(cfg => {
           const route = modeRoutes[cfg.mode];
           const isSelected = currentMode === cfg.mode;

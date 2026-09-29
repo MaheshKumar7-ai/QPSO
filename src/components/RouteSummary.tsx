@@ -1,182 +1,133 @@
 import React from 'react';
-import { EvaluatedRoute, VehicleType, OptimizationMode } from '../types';
-import { formatDurationHuman, getTrafficCategory, getRiskCategory } from '../algorithms/evaluator';
-import { ArrowRight, Car, Bike, Bus, Truck, ShieldAlert } from 'lucide-react';
+import { EvaluatedRoute, VehicleType, OptimizationMode, TrafficState, ObjectiveWeights } from '../types';
+import { formatDurationHuman, getTrafficCategory } from '../algorithms/evaluator';
+import { ArrowRight, Clock, Gauge, Route, Activity } from 'lucide-react';
 
 interface RouteSummaryProps {
   route: EvaluatedRoute | null;
-  shortestRoute?: EvaluatedRoute | null;
-  vehicle: VehicleType;
-  mode: OptimizationMode;
-  currentTimeString: string;
-  isSimulatedTraffic: boolean;
-  onViewDetails: () => void;
+  vehicle?: VehicleType;
+  mode?: OptimizationMode;
+  executionTimeMs?: number;
+  trafficState?: TrafficState;
+  objectiveWeights?: ObjectiveWeights;
 }
 
 export const RouteSummary: React.FC<RouteSummaryProps> = ({
   route,
-  shortestRoute,
-  vehicle,
-  mode,
-  currentTimeString,
-  isSimulatedTraffic,
-  onViewDetails,
+  executionTimeMs,
+  trafficState,
+  objectiveWeights,
 }) => {
-  const getVehicleIcon = () => {
-    switch (vehicle) {
-      case 'car': return <Car className="w-5 h-5 text-blue-600 inline mr-1.5" />;
-      case 'bike': return <Bike className="w-5 h-5 text-blue-600 inline mr-1.5" />;
-      case 'bus': return <Bus className="w-5 h-5 text-blue-600 inline mr-1.5" />;
-      case 'truck': return <Truck className="w-5 h-5 text-blue-600 inline mr-1.5" />;
-      case 'emergency': return <ShieldAlert className="w-5 h-5 text-red-600 inline mr-1.5" />;
-    }
-  };
-
-  const getVehicleLabel = () => {
-    switch (vehicle) {
-      case 'car': return 'Car';
-      case 'bike': return 'Bike';
-      case 'bus': return 'Bus';
-      case 'truck': return 'Truck';
-      case 'emergency': return 'Emergency Vehicle';
-    }
-  };
-
-  const getModeLabel = () => {
-    switch (mode) {
-      case 'fastest': return 'Fastest Route';
-      case 'balanced': return 'Balanced Route';
-      case 'safer': return 'Safer Route';
-      default: return 'Fastest Route';
-    }
-  };
-
-  if (!route) {
+  if (!route || !route.isFeasible) {
     return (
-      <div className="w-full bg-white border border-blue-200 rounded-2xl p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5">
-          <div className="p-3 bg-blue-50 text-blue-600 rounded-xl border border-blue-200 shrink-0">
-            <ArrowRight className="w-6 h-6" />
-          </div>
-          <div>
-            <h2 className="text-lg font-black text-slate-900 tracking-tight">
-              Ready to Optimize Route
-            </h2>
-            <p className="text-xs text-slate-600 font-medium mt-0.5">
-              Select your Start, Destination, Vehicle Type, and Goal above, then click <span className="font-extrabold text-blue-700">Calculate Route</span> to display the path on the map.
-            </p>
-          </div>
-        </div>
+      <div className="p-5 bg-red-50 border border-red-200 rounded-xl text-red-800 text-sm">
+        <p className="font-semibold">No Feasible Path Found</p>
+        {route?.infeasibilityReason && (
+          <p className="text-xs text-red-600 mt-1">{route.infeasibilityReason}</p>
+        )}
       </div>
     );
   }
 
-  if (!route.isFeasible) {
-    return (
-      <div className="w-full bg-white border border-rose-300 rounded-2xl p-6 shadow-xs">
-        <h2 className="text-xl font-black text-rose-700">
-          NO FEASIBLE ROUTE FOUND
-        </h2>
-        <p className="text-sm text-slate-700 mt-2 font-medium">
-          {route.infeasibilityReason || 'No connected road path found under current vehicle restrictions or road incidents.'}
-        </p>
-      </div>
-    );
-  }
-
-  const trafficLabel = getTrafficCategory(route.averageTrafficFactor);
-  const riskLabel = getRiskCategory(route.averageRisk);
+  const startNode = route.segments[0]?.fromNode;
+  const endNode = route.segments[route.segments.length - 1]?.toNode;
+  const trafficStatus = getTrafficCategory(route.averageTrafficFactor);
+  const weights = objectiveWeights ?? route.objectiveWeights ?? { wT: 0.4, wD: 0.3, wC: 0.3 };
 
   return (
-    <div className="w-full bg-white border border-slate-200 rounded-2xl p-5 md:p-6 shadow-xs">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-3">
-        <div>
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <span className="text-xs uppercase font-extrabold px-2.5 py-1 rounded bg-blue-50 text-blue-800 border border-blue-200">
-              Optimal Route Summary
-            </span>
-            {shortestRoute && (
-              <span className="text-xs font-bold px-2.5 py-1 rounded bg-sky-50 text-sky-800 border border-sky-200">
-                🩵 Geometric Shortest Path: {shortestRoute.totalDistanceKm} km
-              </span>
-            )}
-          </div>
-          <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">
-            {getModeLabel()} • {getVehicleLabel()}
-          </h2>
+    <div className="bg-white border border-slate-200 rounded-xl p-5 space-y-5">
+      {/* Route Header */}
+      <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-slate-100">
+        <div className="flex items-center gap-2.5 text-slate-900 font-semibold text-base">
+          <span>{startNode?.name}</span>
+          <ArrowRight className="w-4 h-4 text-blue-600 shrink-0" />
+          <span>{endNode?.name}</span>
         </div>
 
-        <div className="text-left sm:text-right text-xs text-slate-600 font-semibold">
-          <div>Active Time: <span className="font-extrabold text-slate-900">{currentTimeString}</span></div>
-          <div className="mt-0.5 text-blue-800 font-bold">Dynamic Traffic Conditions</div>
+        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 tabular-nums">
+          <span>Departure {trafficState?.timestamp ?? route.trafficTimestamp ?? '08:30'}</span>
+          <span aria-hidden="true">·</span>
+          <span className="capitalize">{trafficState?.dayType ?? 'weekday'}</span>
+          {executionTimeMs !== undefined && (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>Solved in {executionTimeMs.toFixed(1)} ms</span>
+            </>
+          )}
         </div>
       </div>
 
-      {/* Metrics Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mt-4">
-        {/* Vehicle */}
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5">
-          <span className="text-[11px] text-slate-500 block uppercase font-bold">Vehicle</span>
-          <div className="text-lg font-black text-slate-900 mt-1 flex items-center">
-            {getVehicleIcon()}
-            <span>{getVehicleLabel()}</span>
+      {/* Primary Metrics */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="p-3.5 bg-slate-50 rounded-lg border border-slate-200/80">
+          <div className="flex items-center gap-1.5 text-slate-500 text-xs font-medium mb-1">
+            <Clock className="w-3.5 h-3.5 text-blue-600" />
+            <span>Travel Time</span>
           </div>
-        </div>
-
-        {/* Mode */}
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5">
-          <span className="text-[11px] text-slate-500 block uppercase font-bold">Mode</span>
-          <div className="text-lg font-black text-slate-900 mt-1 capitalize">
-            {mode}
-          </div>
-        </div>
-
-        {/* Distance */}
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5">
-          <span className="text-[11px] text-slate-500 block uppercase font-bold">Distance</span>
-          <div className="text-xl font-black text-slate-900 mt-1">
-            {route.totalDistanceKm} <span className="text-xs font-bold text-slate-500">km</span>
-          </div>
-        </div>
-
-        {/* Travel Time */}
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-3.5">
-          <span className="text-[11px] text-blue-900 block uppercase font-bold">Travel Time</span>
-          <div className="text-xl font-black text-blue-950 mt-1">
+          <div className="text-lg font-semibold text-slate-900 tabular-nums">
             {formatDurationHuman(route.totalTimeMin)}
           </div>
-        </div>
-
-        {/* Traffic */}
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5">
-          <span className="text-[11px] text-slate-500 block uppercase font-bold">Traffic</span>
-          <div className="text-lg font-black text-slate-900 mt-1 flex items-center gap-1.5">
-            <span>{trafficLabel}</span>
-            <span className="text-xs text-slate-500 font-bold">({route.averageTrafficFactor}&times;)</span>
+          <div className="text-xs text-slate-500 mt-0.5 tabular-nums">
+            {route.totalTimeMin.toFixed(1)} min
           </div>
         </div>
 
-        {/* Cost Score */}
-        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5">
-          <span className="text-[11px] text-emerald-900 block uppercase font-bold">Cost Score</span>
-          <div className="text-xl font-black text-emerald-950 mt-1">
-            {route.fitness}
+        <div className="p-3.5 bg-slate-50 rounded-lg border border-slate-200/80">
+          <div className="flex items-center gap-1.5 text-slate-500 text-xs font-medium mb-1">
+            <Route className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Total Distance</span>
+          </div>
+          <div className="text-lg font-semibold text-slate-900 tabular-nums">
+            {route.totalDistanceKm.toFixed(1)} km
+          </div>
+          <div className="text-xs text-slate-500 mt-0.5 tabular-nums">
+            {route.segments.length} road segments
+          </div>
+        </div>
+
+        <div className="p-3.5 bg-slate-50 rounded-lg border border-slate-200/80">
+          <div className="flex items-center gap-1.5 text-slate-500 text-xs font-medium mb-1">
+            <Gauge className="w-3.5 h-3.5 text-amber-600" />
+            <span>Congestion Cost</span>
+          </div>
+          <div className="text-lg font-semibold text-slate-900 tabular-nums">
+            {route.totalCongestion.toFixed(2)}
+          </div>
+          <div className="text-xs text-slate-500 mt-0.5 tabular-nums">
+            Avg {route.averageTrafficFactor.toFixed(2)}× ({trafficStatus})
+          </div>
+        </div>
+
+        <div className="p-3.5 bg-blue-50/60 rounded-lg border border-blue-200">
+          <div className="flex items-center gap-1.5 text-blue-700 text-xs font-medium mb-1">
+            <Activity className="w-3.5 h-3.5 text-blue-600" />
+            <span>Objective Cost</span>
+          </div>
+          <div className="text-lg font-semibold text-blue-900 tabular-nums">
+            {route.fitness.toFixed(4)}
+          </div>
+          <div className="text-xs text-blue-700 mt-0.5 tabular-nums">
+            Weights {(weights.wT * 100).toFixed(0)}% / {(weights.wC * 100).toFixed(0)}% / {(weights.wD * 100).toFixed(0)}%
           </div>
         </div>
       </div>
 
-      <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between pt-3 border-t border-slate-100 gap-3">
-        <div className="text-xs text-slate-600 font-semibold">
-          Road Segments: <span className="font-black text-slate-900">{route.segments.length} segments</span>
+      {/* Connected Node Path */}
+      <div className="pt-1">
+        <div className="text-xs font-medium text-slate-500 mb-2">
+          Connected Corridor ({route.nodeIds.length} cities)
         </div>
-        <button
-          onClick={onViewDetails}
-          id="btn-view-route-details"
-          className="text-xs font-bold text-blue-700 hover:text-blue-900 flex items-center gap-1.5 cursor-pointer bg-blue-50 hover:bg-blue-100 px-3.5 py-1.5 rounded-lg border border-blue-200 transition-colors"
-        >
-          <span>View Turn-by-Turn Route</span>
-          <ArrowRight className="w-4 h-4" />
-        </button>
+        <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-800">
+          {route.segments.map((seg, i) => (
+            <React.Fragment key={seg.edge.id + i}>
+              <span className="font-medium text-slate-900">{seg.fromNode.name}</span>
+              <span className="text-slate-400">→</span>
+              {i === route.segments.length - 1 && (
+                <span className="font-semibold text-blue-700">{seg.toNode.name}</span>
+              )}
+            </React.Fragment>
+          ))}
+        </div>
       </div>
     </div>
   );

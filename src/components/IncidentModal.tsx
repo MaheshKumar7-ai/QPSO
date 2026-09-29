@@ -54,18 +54,6 @@ export const IncidentModal: React.FC<IncidentModalProps> = ({
       icon: ShieldAlert,
       mathEffect: 'Risk Score ↑ (+5.0 hazard penalty) & Travel Time ↑.',
     },
-    {
-      type: 'flood',
-      label: 'Seasonal Flash Flood / Waterlogging',
-      icon: Waves,
-      mathEffect: 'Road Impassable / Flooded (∞ Weight). Forces dynamic reroute detour.',
-    },
-    {
-      type: 'hazardous_road',
-      label: 'Hazardous Road Conditions / Debris',
-      icon: AlertTriangle,
-      mathEffect: 'Risk Penalty ↑ (+4.0) across all optimization modes.',
-    },
   ];
 
   const handleApply = () => {

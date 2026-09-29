@@ -3,33 +3,65 @@ import {
   GraphEdge,
   VehicleType,
   OptimizationMode,
+  ObjectiveWeights,
+  TrafficState,
   QpsoResult,
   QpsoIterationRecord,
+  QpsoParticleCalculationState,
   EvaluatedRoute,
 } from '../types';
 import {
-  evaluateRoutePath,
   computeEdgeMetaheuristicWeight,
   computeGraphNormalizationBounds,
   removeLoopsFromPath,
+  resolveObjectiveWeights,
+  getDynamicEdgeState,
+  buildTrafficState,
   GraphNormalizationBounds,
 } from './evaluator';
+import { DirectedWeightedGraph } from '../core/graph';
+import { recalculateRouteMetrics } from '../core/shortestPath';
 import { GLOBAL_TRAINED_TRAFFIC_MODEL } from './trafficModel';
 
 export interface QpsoOptions {
   swarmSize?: number;
+  populationSize?: number;
   maxIterations?: number;
   betaMax?: number;
   betaMin?: number;
+  seed?: number;
+  stagnationLimit?: number;
+  trafficState?: TrafficState;
+  objectiveWeights?: ObjectiveWeights;
+  graph?: DirectedWeightedGraph;
 }
 
-// Helper to build adjacency map for ultra-fast graph traversal
-export function buildAdjacencyMap(edges: GraphEdge[], vehicle: VehicleType): Map<string, GraphEdge[]> {
+/**
+ * Seeded pseudo-random number generator (Mulberry32)
+ * Ensures 100% deterministic reproducibility when given the same random seed.
+ */
+export function createSeededRng(seed: number = 42): () => number {
+  let a = (seed ^ 0xdeadbeef) >>> 0;
+  return function () {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/**
+ * Builds directed adjacency map for graph traversal under the given TrafficState.
+ */
+export function buildAdjacencyMap(
+  edges: GraphEdge[],
+  _vehicle?: VehicleType,
+  trafficState?: TrafficState
+): Map<string, GraphEdge[]> {
   const map = new Map<string, GraphEdge[]>();
   for (const edge of edges) {
-    if (edge.incident && edge.incident.isBlocked) continue;
-    const allowed = edge.vehicle_allowed ?? edge.allowedVehicles;
-    if (allowed && !allowed.includes(vehicle)) continue;
+    const dyn = getDynamicEdgeState(edge, trafficState);
+    if (dyn.isBlocked || !isFinite(dyn.travelTime)) continue;
     let list = map.get(edge.from);
     if (!list) {
       list = [];
@@ -40,19 +72,23 @@ export function buildAdjacencyMap(edges: GraphEdge[], vehicle: VehicleType): Map
   return map;
 }
 
-// Calculate exact weighted path on graph for a given optimization mode
+/**
+ * Calculates exact weighted shortest path on the network for a given objective weight configuration & TrafficState.
+ */
 export function findShortestDijkstraPath(
   startId: string,
   destId: string,
   vertices: GraphVertex[],
   edges: GraphEdge[],
-  vehicle: VehicleType,
+  _vehicle?: VehicleType,
   adjMap?: Map<string, GraphEdge[]>,
   mode: OptimizationMode = 'balanced',
-  bounds?: GraphNormalizationBounds
+  bounds?: GraphNormalizationBounds,
+  trafficState?: TrafficState,
+  customWeights?: ObjectiveWeights
 ): string[] {
   if (startId === destId) return [startId];
-  const graphAdj = adjMap ?? buildAdjacencyMap(edges, vehicle);
+  const graphAdj = adjMap ?? buildAdjacencyMap(edges, undefined, trafficState);
   const distances = new Map<string, number>();
   const previous = new Map<string, string | null>();
   const unvisited = new Set<string>();
@@ -64,7 +100,7 @@ export function findShortestDijkstraPath(
   });
   distances.set(startId, 0);
 
-  const normBounds = bounds ?? computeGraphNormalizationBounds(edges);
+  const normBounds = bounds ?? computeGraphNormalizationBounds(edges, trafficState);
 
   while (unvisited.size > 0) {
     let current: string | null = null;
@@ -85,11 +121,16 @@ export function findShortestDijkstraPath(
     const outgoing = graphAdj.get(current) ?? [];
     for (const edge of outgoing) {
       if (!unvisited.has(edge.to)) continue;
-      if (edge.incident && edge.incident.isBlocked) continue;
-      const allowed = edge.vehicle_allowed ?? edge.allowedVehicles;
-      if (allowed && !allowed.includes(vehicle)) continue;
+      const edgeCost = computeEdgeMetaheuristicWeight(
+        edge,
+        mode,
+        undefined,
+        normBounds,
+        trafficState,
+        customWeights
+      );
+      if (!isFinite(edgeCost)) continue;
 
-      const edgeCost = computeEdgeMetaheuristicWeight(edge, mode, vehicle, normBounds);
       const alt = minDist + edgeCost;
       if (alt < distances.get(edge.to)!) {
         distances.set(edge.to, alt);
@@ -114,7 +155,23 @@ export function findShortestDijkstraPath(
   return [];
 }
 
-// Helper to decode particle position vector into a valid connected route path
+export interface RouteDecodingDiagnostics {
+  wasRepaired: boolean;
+  isFeasible: boolean;
+}
+
+/**
+ * Decodes a continuous QPSO particle position vector X_i in [0, 1]^D into a valid,
+ * connected route R = (startId, ..., destId) through the Andhra Pradesh directed graph.
+ *
+ * Guarantees:
+ * 1. Origin is strictly fixed to startId.
+ * 2. Destination is strictly fixed to destId.
+ * 3. Every edge transition exists in the directed graph.
+ * 4. Disconnected jumps invoke graph-aware repair.
+ * 5. Loops are eliminated.
+ * 6. Fitness is evaluated using the unified multi-objective F(R, t).
+ */
 export function decodeParticleToRoute(
   startId: string,
   destId: string,
@@ -122,18 +179,28 @@ export function decodeParticleToRoute(
   nodeIndexMap: Map<string, number>,
   vertices: GraphVertex[],
   edges: GraphEdge[],
-  vehicle: VehicleType,
-  mode: OptimizationMode,
+  _vehicle?: VehicleType,
+  mode: OptimizationMode = 'balanced',
   adjMap?: Map<string, GraphEdge[]>,
-  bounds?: GraphNormalizationBounds
+  bounds?: GraphNormalizationBounds,
+  trafficState?: TrafficState,
+  customWeights?: ObjectiveWeights,
+  graphInstance?: DirectedWeightedGraph,
+  diagnostics?: RouteDecodingDiagnostics
 ): EvaluatedRoute {
-  const normBounds = bounds ?? computeGraphNormalizationBounds(edges);
+  const normBounds = bounds ?? computeGraphNormalizationBounds(edges, trafficState);
+  const weights = resolveObjectiveWeights(mode, customWeights);
+  const graph = graphInstance ?? DirectedWeightedGraph.fromNetwork(vertices, edges);
 
   if (startId === destId) {
-    return evaluateRoutePath([startId], vertices, edges, mode, vehicle, normBounds);
+    if (diagnostics) {
+      diagnostics.wasRepaired = false;
+      diagnostics.isFeasible = true;
+    }
+    return recalculateRouteMetrics([startId], graph, trafficState, weights, normBounds, startId, destId);
   }
 
-  const graphAdj = adjMap ?? buildAdjacencyMap(edges, vehicle);
+  const graphAdj = adjMap ?? buildAdjacencyMap(edges, undefined, trafficState);
   const distances = new Map<string, number>();
   const previous = new Map<string, string | null>();
   const unvisited = new Set<string>();
@@ -164,18 +231,24 @@ export function decodeParticleToRoute(
     const outgoing = graphAdj.get(current) ?? [];
     for (const edge of outgoing) {
       if (!unvisited.has(edge.to)) continue;
-      if (edge.incident && edge.incident.isBlocked) continue;
-      const allowed = edge.vehicle_allowed ?? edge.allowedVehicles;
-      if (allowed && !allowed.includes(vehicle)) continue;
 
-      const baseCost = computeEdgeMetaheuristicWeight(edge, mode, vehicle, normBounds);
+      const baseCost = computeEdgeMetaheuristicWeight(
+        edge,
+        mode,
+        undefined,
+        normBounds,
+        trafficState,
+        weights
+      );
+      if (!isFinite(baseCost)) continue;
 
+      // Particle continuous gene modulating edge traversal desirability
       const targetIdx = nodeIndexMap.get(edge.to) ?? 0;
       const pWeight = particlePosition[targetIdx % particlePosition.length] ?? 0.5;
-      // Modulate route priority: pWeight modulates edge desirability in quantum space
-      const effectiveCost = baseCost * (0.6 + 0.8 * pWeight);
+      // Quantum potential modulation of edge traversal
+      const modulatedCost = baseCost * (0.75 + 0.50 * pWeight);
 
-      const alt = minDist + effectiveCost;
+      const alt = minDist + modulatedCost;
       if (alt < distances.get(edge.to)!) {
         distances.set(edge.to, alt);
         previous.set(edge.to, current);
@@ -183,75 +256,81 @@ export function decodeParticleToRoute(
     }
   }
 
-  // Reconstruct path
-  const path: string[] = [];
+  // Reconstruct connected path
+  const rawPath: string[] = [];
   let curr: string | null = destId;
   const visitedDecoded = new Set<string>();
   while (curr && !visitedDecoded.has(curr)) {
     visitedDecoded.add(curr);
-    path.unshift(curr);
+    rawPath.unshift(curr);
     if (curr === startId) break;
     curr = previous.get(curr) ?? null;
   }
 
-  const cleanPath = removeLoopsFromPath(path);
+  const cleanPath = removeLoopsFromPath(rawPath);
 
+  // Check if primary decoded path successfully connected startId to destId
   if (cleanPath[0] === startId && cleanPath[cleanPath.length - 1] === destId) {
-    return evaluateRoutePath(cleanPath, vertices, edges, mode, vehicle, normBounds);
+    const evaluated = recalculateRouteMetrics(cleanPath, graph, trafficState, weights, normBounds, startId, destId);
+    if (evaluated.isFeasible) {
+      if (diagnostics) {
+        diagnostics.wasRepaired = false;
+        diagnostics.isFeasible = true;
+      }
+      return evaluated;
+    }
   }
 
-  // Fallback to exact mode-weighted path
-  const fallbackPath = findShortestDijkstraPath(startId, destId, vertices, edges, vehicle, graphAdj, mode, normBounds);
-  if (fallbackPath.length > 0) {
-    return evaluateRoutePath(fallbackPath, vertices, edges, mode, vehicle, normBounds);
+  // Graph-aware repair mechanism: fallback to connected shortest feasible path on active graph
+  if (diagnostics) {
+    diagnostics.wasRepaired = true;
+  }
+
+  const fallbackPath = findShortestDijkstraPath(
+    startId,
+    destId,
+    vertices,
+    edges,
+    undefined,
+    graphAdj,
+    mode,
+    normBounds,
+    trafficState,
+    weights
+  );
+
+  if (fallbackPath.length >= 2) {
+    const repairedEval = recalculateRouteMetrics(fallbackPath, graph, trafficState, weights, normBounds, startId, destId);
+    if (diagnostics) {
+      diagnostics.isFeasible = repairedEval.isFeasible;
+    }
+    return repairedEval;
+  }
+
+  if (diagnostics) {
+    diagnostics.isFeasible = false;
   }
 
   return {
-    nodeIds: path,
+    nodeIds: cleanPath,
     segments: [],
     totalDistanceKm: 0,
     baseTimeMin: 0,
     totalTimeMin: 0,
+    totalCongestion: 0,
+    normalizedTime: 0,
+    normalizedDistance: 0,
+    normalizedCongestion: 0,
+    objectiveWeights: weights,
+    trafficTimestamp: trafficState?.timestamp,
     averageTrafficFactor: 1.0,
     averageRisk: 0,
     congestionCost: 0,
     riskCost: 0,
     fitness: Infinity,
     isFeasible: false,
-    infeasibilityReason: 'No feasible path exists between start and destination under current constraints',
+    infeasibilityReason: 'No feasible connected route exists between origin and destination under current traffic state',
   };
-}
-
-// Simple BFS to find any feasible connected path under constraints
-export function findFeasibleBfsPath(
-  startId: string,
-  destId: string,
-  edges: GraphEdge[],
-  vehicle: VehicleType,
-  adjMap?: Map<string, GraphEdge[]>
-): string[] {
-  const graphAdj = adjMap ?? buildAdjacencyMap(edges, vehicle);
-  const queue: string[][] = [[startId]];
-  const visited = new Set<string>([startId]);
-
-  while (queue.length > 0) {
-    const currentPath = queue.shift()!;
-    const lastNode = currentPath[currentPath.length - 1];
-
-    if (lastNode === destId) {
-      return currentPath;
-    }
-
-    const outgoing = graphAdj.get(lastNode) ?? [];
-    for (const edge of outgoing) {
-      if (!visited.has(edge.to)) {
-        visited.add(edge.to);
-        queue.push([...currentPath, edge.to]);
-      }
-    }
-  }
-
-  return [];
 }
 
 export interface CorridorSubgraph {
@@ -262,50 +341,84 @@ export interface CorridorSubgraph {
 }
 
 /**
- * Extracts a compact corridor subgraph around the feasible paths between start and destination.
- * Dramatically reduces the search space so QPSO executes significantly faster than full-graph search.
+ * Extracts a compact corridor subgraph around the Pareto-efficient paths (Time, Distance, Congestion, Balanced, and Bypass)
+ * between origin and destination under the active TrafficState.
  */
 export function extractCorridorSubgraph(
   startId: string,
   destId: string,
   vertices: GraphVertex[],
   edges: GraphEdge[],
-  vehicle: VehicleType
+  _vehicle?: VehicleType,
+  trafficState?: TrafficState,
+  customWeights?: ObjectiveWeights
 ): CorridorSubgraph {
   const corridorNodeIds = new Set<string>();
   corridorNodeIds.add(startId);
   corridorNodeIds.add(destId);
 
-  const adjMap = buildAdjacencyMap(edges, vehicle);
+  const adjMap = buildAdjacencyMap(edges, undefined, trafficState);
+  const bounds = computeGraphNormalizationBounds(edges, trafficState);
 
-  // 1. Collect nodes from primary objective paths
-  const shortest = findShortestDijkstraPath(startId, destId, vertices, edges, vehicle, adjMap, 'shortest');
-  shortest.forEach(id => corridorNodeIds.add(id));
+  // 1. Collect nodes from extreme & balanced objective weight vectors
+  const weightProfiles: ObjectiveWeights[] = [
+    customWeights ?? { wT: 0.40, wD: 0.30, wC: 0.30 },
+    { wT: 1.0, wD: 0.0, wC: 0.0 },   // Pure Time
+    { wT: 0.0, wD: 1.0, wC: 0.0 },   // Pure Distance
+    { wT: 0.0, wD: 0.0, wC: 1.0 },   // Pure Congestion Avoidance
+    { wT: 0.70, wD: 0.15, wC: 0.15 }, // Time-focused
+    { wT: 0.15, wD: 0.70, wC: 0.15 }, // Distance-focused
+    { wT: 0.25, wD: 0.15, wC: 0.60 }, // Congestion-focused
+  ];
 
-  const fastest = findShortestDijkstraPath(startId, destId, vertices, edges, vehicle, adjMap, 'fastest');
-  fastest.forEach(id => corridorNodeIds.add(id));
+  for (const w of weightProfiles) {
+    const p = findShortestDijkstraPath(
+      startId,
+      destId,
+      vertices,
+      edges,
+      undefined,
+      adjMap,
+      'balanced',
+      bounds,
+      trafficState,
+      w
+    );
+    p.forEach(id => corridorNodeIds.add(id));
+  }
 
-  const safer = findShortestDijkstraPath(startId, destId, vertices, edges, vehicle, adjMap, 'safer');
-  safer.forEach(id => corridorNodeIds.add(id));
-
-  const balanced = findShortestDijkstraPath(startId, destId, vertices, edges, vehicle, adjMap, 'balanced');
-  balanced.forEach(id => corridorNodeIds.add(id));
-
-  // 2. Discover alternative bypass corridors by penalizing shared primary roads
+  // 2. Discover alternative bypass corridors by penalizing primary edges
   const penalizedEdges: GraphEdge[] = edges.map(e => {
     if (corridorNodeIds.has(e.from) && corridorNodeIds.has(e.to) && e.roadType !== 'expressway') {
-      return { ...e, trafficFactor: e.trafficFactor * 2.2, riskScore: e.riskScore + 2.5 };
+      return {
+        ...e,
+        trafficFactor: e.trafficFactor * 2.2,
+        historical_congestion: (e.historical_congestion ?? e.trafficFactor) * 2.2,
+      };
     }
     return e;
   });
-  const detour = findShortestDijkstraPath(startId, destId, vertices, penalizedEdges, vehicle, undefined, 'balanced');
+  const detour = findShortestDijkstraPath(
+    startId,
+    destId,
+    vertices,
+    penalizedEdges,
+    undefined,
+    undefined,
+    'balanced',
+    bounds,
+    undefined,
+    customWeights
+  );
   detour.forEach(id => corridorNodeIds.add(id));
 
-  // 3. Include connected adjacent bypass vertices (keep subgraph compact, max 120 vertices for full AP coverage)
+  // 3. Include connected adjacent bypass vertices (up to 120 vertices)
   for (const edge of edges) {
     if (corridorNodeIds.size >= 120) break;
     if (corridorNodeIds.has(edge.from) && !corridorNodeIds.has(edge.to)) {
-      const hasReturn = edges.some(e2 => e2.from === edge.to && corridorNodeIds.has(e2.to) && e2.to !== edge.from);
+      const hasReturn = edges.some(
+        e2 => e2.from === edge.to && corridorNodeIds.has(e2.to) && e2.to !== edge.from
+      );
       if (hasReturn) {
         corridorNodeIds.add(edge.to);
       }
@@ -327,40 +440,57 @@ export function extractCorridorSubgraph(
 }
 
 /**
- * Quantum-Inspired Particle Swarm Optimization (QPSO) Engine
- * Operates on a focused corridor subgraph to achieve low computation time
- * and multi-objective optimization superior to single-metric shortest path algorithms.
+ * Adaptive Quantum-Inspired Particle Swarm Optimization (QPSO) Engine
+ *
+ * Implements the continuous Delta-Potential-Well quantum swarm mechanics:
+ *   mbest(t) = (1/M) * sum(P_i(t))
+ *   p_ij(t)  = phi * P_ij(t) + (1 - phi) * G_j(t)
+ *   X_ij(t+1)= p_ij(t) +/- beta(t) * |mbest_j - X_ij(t)| * ln(1 / u)
+ *
+ * Evaluates candidate routes strictly against the unified multi-objective:
+ *   F(R, t) = wT * T_norm(R, t) + wD * D_norm(R) + wC * C_norm(R, t)
  */
 export function runQpsoOptimization(
   startId: string,
   destId: string,
   vertices: GraphVertex[],
   edges: GraphEdge[],
-  mode: OptimizationMode,
-  vehicle: VehicleType,
+  mode: OptimizationMode = 'balanced',
+  _vehicle?: VehicleType,
   options: QpsoOptions = {}
 ): QpsoResult {
   const startTime = performance.now();
 
-  const swarmSize = options.swarmSize ?? 18;
+  const swarmSize = options.populationSize ?? options.swarmSize ?? 18;
   const maxIterations = options.maxIterations ?? 30;
   const betaMax = options.betaMax ?? 1.0;
   const betaMin = options.betaMin ?? 0.5;
+  const seed = options.seed ?? 42;
+  const stagnationLimit = options.stagnationLimit ?? 6;
 
-  // Extract a small subgraph involving the path so computation time is less than full graph search
-  const { subVertices, subEdges, nodeIndexMap } = extractCorridorSubgraph(startId, destId, vertices, edges, vehicle);
-  const subAdjMap = buildAdjacencyMap(subEdges, vehicle);
-  const dim = subVertices.length;
-  const normBounds = computeGraphNormalizationBounds(edges);
+  const rng = createSeededRng(seed);
 
-  // Baseline shortest distance Dijkstra route
-  const shortestDijkstraPath = findShortestDijkstraPath(startId, destId, vertices, edges, vehicle, undefined, mode, normBounds);
-  const shortestDijkstraRoute = shortestDijkstraPath.length > 0
-    ? evaluateRoutePath(shortestDijkstraPath, vertices, edges, mode, vehicle, normBounds)
-    : null;
+  const activeTrafficState = options.trafficState ?? buildTrafficState(edges, '08:30', 'weekday');
+  const activeWeights = resolveObjectiveWeights(mode, options.objectiveWeights);
+  const fullGraph = options.graph ?? DirectedWeightedGraph.fromNetwork(vertices, edges);
 
-  // Pool to track all distinct candidate routes evaluated by the quantum swarm
-  const candidateRoutesMap = new Map<string, EvaluatedRoute>();
+  const { subVertices, subEdges, nodeIndexMap } = extractCorridorSubgraph(
+    startId,
+    destId,
+    vertices,
+    edges,
+    undefined,
+    activeTrafficState,
+    activeWeights
+  );
+  const subAdjMap = buildAdjacencyMap(subEdges, undefined, activeTrafficState);
+  const dim = Math.max(1, subVertices.length);
+  const normBounds = fullGraph.computeNormalizationBounds(activeTrafficState);
+
+  // Tracking counters
+  let totalCandidateEvaluations = 0;
+  let totalRepairs = 0;
+  let totalFeasibleSolutions = 0;
 
   // Initialize particles
   const particles: number[][] = [];
@@ -368,30 +498,12 @@ export function runQpsoOptimization(
   const pbestFitnesses: number[] = [];
   const pbestRoutes: EvaluatedRoute[] = [];
 
-  let gbestPosition: number[] = [];
+  let gbestPosition: number[] = new Array(dim).fill(0.5);
   let gbestFitness = Infinity;
   let gbestRoute: EvaluatedRoute | null = null;
-  let candidateEvaluationsCount = 0;
-
-  // Evaluate mode-specific seed path on subgraph
-  const modeSeedPath = findShortestDijkstraPath(startId, destId, subVertices, subEdges, vehicle, subAdjMap, mode, normBounds);
-  if (modeSeedPath.length > 0) {
-    const seedRoute = evaluateRoutePath(modeSeedPath, vertices, edges, mode, vehicle, normBounds);
-    if (seedRoute.isFeasible) {
-      gbestFitness = seedRoute.fitness;
-      gbestRoute = seedRoute;
-      candidateRoutesMap.set(seedRoute.nodeIds.join('->'), seedRoute);
-      const seedPos = new Array(dim).fill(0.7);
-      modeSeedPath.forEach(id => {
-        const idx = nodeIndexMap.get(id);
-        if (idx !== undefined) seedPos[idx] = 0.05;
-      });
-      gbestPosition = [...seedPos];
-    }
-  }
 
   // Compute Trained Model Predictions for Subgraph Corridor Nodes
-  const nodeModelPriors = subVertices.map((v) => {
+  const nodeModelPriors = subVertices.map(v => {
     const connectedEdges = subEdges.filter(e => e.from === v.id || e.to === v.id);
     if (connectedEdges.length === 0) {
       return {
@@ -399,21 +511,22 @@ export function runQpsoOptimization(
         predictedRisk: 2.0,
         confidence: 0.90,
         desirability: 0.5,
-        flowCost: 5.0,
       };
     }
     let totalCong = 0;
     let totalRisk = 0;
     let totalConf = 0;
     let totalDesir = 0;
-    let totalCost = 0;
     for (const edge of connectedEdges) {
-      const pred = GLOBAL_TRAINED_TRAFFIC_MODEL.predictEdge(edge, 9, vehicle);
+      const pred = GLOBAL_TRAINED_TRAFFIC_MODEL.predictEdge(
+        edge,
+        activeTrafficState.hour,
+        activeTrafficState
+      );
       totalCong += pred.predictedCongestion;
       totalRisk += pred.predictedRiskScore;
       totalConf += pred.modelConfidence;
       totalDesir += pred.priorDesirability;
-      totalCost += pred.predictedFlowCost;
     }
     const k = connectedEdges.length;
     return {
@@ -421,33 +534,48 @@ export function runQpsoOptimization(
       predictedRisk: Number((totalRisk / k).toFixed(1)),
       confidence: Number((totalConf / k).toFixed(3)),
       desirability: Number((totalDesir / k).toFixed(3)),
-      flowCost: Number((totalCost / k).toFixed(2)),
     };
   });
 
+  // Heuristic seed path for initial particle 0
+  const seedPath = findShortestDijkstraPath(
+    startId,
+    destId,
+    subVertices,
+    subEdges,
+    undefined,
+    subAdjMap,
+    mode,
+    normBounds,
+    activeTrafficState,
+    activeWeights
+  );
+
+  // Swarm Initialization
   for (let i = 0; i < swarmSize; i++) {
     const pos: number[] = [];
     for (let d = 0; d < dim; d++) {
-      if (i === 0 && gbestPosition.length === dim) {
-        const seedPerturb = (((d * 19 + 7) % 100) / 100 - 0.5) * 0.08;
-        pos.push(Math.max(0.02, Math.min(0.98, gbestPosition[d] + seedPerturb)));
+      if (i === 0 && seedPath.length > 0) {
+        const nodeId = subVertices[d]?.id;
+        const onSeed = nodeId ? seedPath.includes(nodeId) : false;
+        const baseVal = onSeed ? 0.15 : 0.70;
+        const perturb = (rng() - 0.5) * 0.08;
+        pos.push(Math.max(0.01, Math.min(0.99, baseVal + perturb)));
       } else if (i <= Math.floor(swarmSize / 2)) {
-        // Model-Guided Prior: High desirability nodes receive lower position cost
-        const modelTarget = 1.0 - nodeModelPriors[d].desirability;
-        const uncert = (1.0 - nodeModelPriors[d].confidence) * 0.3;
-        const pseudoNoise = ((((i * 17 + d * 31) % 100) / 100) - 0.5) * uncert;
-        pos.push(Math.max(0.02, Math.min(0.98, modelTarget + pseudoNoise)));
+        const modelTarget = 1.0 - (nodeModelPriors[d]?.desirability ?? 0.5);
+        const uncert = (1.0 - (nodeModelPriors[d]?.confidence ?? 0.9)) * 0.35;
+        const noise = (rng() - 0.5) * uncert;
+        pos.push(Math.max(0.01, Math.min(0.99, modelTarget + noise)));
       } else {
-        // Stratified Latin Hypercube initialization anchored by model flow potential
-        const stratBase = (i + nodeModelPriors[d].desirability) / (swarmSize + 1);
-        const stratPerturb = ((((i * 43 + d * 59) % 100) / 100) - 0.5) * 0.12;
-        pos.push(Math.max(0.02, Math.min(0.98, stratBase + stratPerturb)));
+        const stratBase = (i + (nodeModelPriors[d]?.desirability ?? 0.5)) / (swarmSize + 1);
+        const perturb = (rng() - 0.5) * 0.30;
+        pos.push(Math.max(0.01, Math.min(0.99, stratBase + perturb)));
       }
     }
     particles.push(pos);
     pbestPositions.push([...pos]);
 
-    // Fast particle evaluation on the compact subgraph
+    const diag: RouteDecodingDiagnostics = { wasRepaired: false, isFeasible: false };
     const initialRoute = decodeParticleToRoute(
       startId,
       destId,
@@ -455,16 +583,19 @@ export function runQpsoOptimization(
       nodeIndexMap,
       subVertices,
       subEdges,
-      vehicle,
+      undefined,
       mode,
       subAdjMap,
-      normBounds
+      normBounds,
+      activeTrafficState,
+      activeWeights,
+      fullGraph,
+      diag
     );
-    candidateEvaluationsCount++;
 
-    if (initialRoute.isFeasible) {
-      candidateRoutesMap.set(initialRoute.nodeIds.join('->'), initialRoute);
-    }
+    totalCandidateEvaluations++;
+    if (diag.wasRepaired) totalRepairs++;
+    if (initialRoute.isFeasible) totalFeasibleSolutions++;
 
     pbestFitnesses.push(initialRoute.fitness);
     pbestRoutes.push(initialRoute);
@@ -476,19 +607,19 @@ export function runQpsoOptimization(
     }
   }
 
-  if (!gbestRoute) {
-    const fallbackPath = findShortestDijkstraPath(startId, destId, subVertices, subEdges, vehicle, subAdjMap, mode, normBounds);
-    if (fallbackPath.length > 0) {
-      gbestRoute = evaluateRoutePath(fallbackPath, vertices, edges, mode, vehicle, normBounds);
-      gbestFitness = gbestRoute.fitness;
-      gbestPosition = new Array(dim).fill(0.5);
+  // Ensure gbest is initialized
+  if (!gbestRoute && seedPath.length >= 2) {
+    const fallbackEval = recalculateRouteMetrics(seedPath, fullGraph, activeTrafficState, activeWeights, normBounds, startId, destId);
+    if (fallbackEval.isFeasible) {
+      gbestRoute = fallbackEval;
+      gbestFitness = fallbackEval.fitness;
     }
   }
 
   const convergenceHistory: QpsoIterationRecord[] = [];
-  let sampleCalculation: import('../types').QpsoParticleCalculationState | undefined;
+  let sampleCalculation: QpsoParticleCalculationState | undefined;
 
-  // Compute initial swarm diversity S(0)
+  // Initial Swarm Diversity S(0)
   const meanPos0: number[] = new Array(dim).fill(0);
   for (let d = 0; d < dim; d++) {
     let s = 0;
@@ -515,13 +646,12 @@ export function runQpsoOptimization(
     ? validInitFits.reduce((s, f) => s + Math.pow(f - initMean, 2), 0) / validInitFits.length
     : 0;
 
-  // Record iteration 0
   convergenceHistory.push({
     iteration: 0,
-    bestFitness: gbestFitness === Infinity ? 999 : Number(gbestFitness.toFixed(2)),
-    meanFitness: Number(initMean.toFixed(2)),
-    worstFitness: Number(initWorst.toFixed(2)),
-    fitnessStdDev: Number(Math.sqrt(initVariance).toFixed(2)),
+    bestFitness: gbestFitness === Infinity ? 999 : Number(gbestFitness.toFixed(4)),
+    meanFitness: Number(initMean.toFixed(4)),
+    worstFitness: Number(initWorst.toFixed(4)),
+    fitnessStdDev: Number(Math.sqrt(initVariance).toFixed(4)),
     swarmDiversity: initDiversity,
     beta: betaMax,
     deltaFitness: 0,
@@ -529,11 +659,18 @@ export function runQpsoOptimization(
   });
 
   let prevBestFitness = gbestFitness;
+  let stagnationCounter = 0;
 
-  // Main QPSO Subgraph Loop
+  // Main Adaptive QPSO Evolution Loop
   for (let t = 1; t <= maxIterations; t++) {
-    const beta = betaMax - (t / maxIterations) * (betaMax - betaMin);
+    // 1. Adaptive Beta Schedule with Stagnation Mitigation
+    let beta = betaMax - (t / maxIterations) * (betaMax - betaMin);
+    if (stagnationCounter >= stagnationLimit) {
+      // Dynamic exploration boost to escape local basin
+      beta = Math.min(betaMax, beta + 0.18);
+    }
 
+    // 2. Compute Mean Best Position (mbest) across Personal Bests
     const mbest: number[] = new Array(dim).fill(0);
     for (let d = 0; d < dim; d++) {
       let sum = 0;
@@ -543,30 +680,29 @@ export function runQpsoOptimization(
       mbest[d] = sum / swarmSize;
     }
 
+    // 3. Update Quantum Particle Coordinates
     for (let i = 0; i < swarmSize; i++) {
       for (let d = 0; d < dim; d++) {
-        // Model-Guided Attractor: Modulates cognitive vs social balance based on model confidence and predicted flow
-        const modelPrior = nodeModelPriors[d];
-        const phiModelBase = 0.5 + (modelPrior.desirability - 0.5) * 0.35;
-        const phiNoise = ((((t * 17 + i * 29 + d * 43) % 100) / 100) - 0.5) * (1.0 - modelPrior.confidence);
-        const phi = Math.max(0.08, Math.min(0.92, phiModelBase + phiNoise));
-        const p_id = phi * pbestPositions[i][d] + (1 - phi) * (gbestPosition[d] ?? 0.5);
+        const modelPrior = nodeModelPriors[d] ?? {
+          predictedCongestion: 1.15,
+          predictedRisk: 2.0,
+          confidence: 0.9,
+          desirability: 0.5,
+        };
 
-        // Model-Guided Quantum Dispersion: u is mapped through the model's confidence distribution
-        const uDispersion = ((((t * 37 + i * 19 + d * 71) % 100) / 100) - 0.5) * (1.0 - modelPrior.confidence * 0.6);
-        const u = Math.max(0.005, Math.min(0.995, 0.5 + uDispersion));
-        const delta = beta * Math.abs(mbest[d] - particles[i][d]) * Math.log(1 / u);
+        const phi = rng();
+        // Stochastic local attractor p_id
+        const p_id = phi * pbestPositions[i][d] + (1.0 - phi) * (gbestPosition[d] ?? 0.5);
 
-        // Directional quantum perturbation biased toward learned high-efficiency corridors
-        const targetPos = 1.0 - modelPrior.desirability;
-        const gradientBias = particles[i][d] > targetPos ? -1 : 1;
-        const sign = (((t * 53 + i * 11 + d * 23) % 100) < 70) ? gradientBias : -gradientBias;
+        const u = Math.max(1e-5, Math.min(1.0 - 1e-5, rng()));
+        const delta = beta * Math.abs(mbest[d] - particles[i][d]) * Math.log(1.0 / u);
+        const sign = rng() < 0.5 ? 1 : -1;
+
         let newPos = p_id + sign * delta;
-
         if (newPos < 0) newPos = 0;
         if (newPos > 1) newPos = 1;
 
-        if (!sampleCalculation && t === Math.min(6, Math.floor(maxIterations / 3)) && i === 0 && d === 0) {
+        if (!sampleCalculation && t === Math.min(4, Math.floor(maxIterations / 3)) && i === 0 && d === 0) {
           sampleCalculation = {
             particleIndex: 1,
             iteration: t,
@@ -588,14 +724,15 @@ export function runQpsoOptimization(
             modelPredictedRisk: modelPrior.predictedRisk,
             modelConfidence: modelPrior.confidence,
             modelPriorDesirability: modelPrior.desirability,
-            modelFeatureContribution: 'Trained Supervised Traffic Model (Historical Congestion & Risk Weights)',
+            modelFeatureContribution: 'Adaptive QPSO Potential-Well Update',
           };
         }
 
         particles[i][d] = newPos;
       }
 
-      // Fast evaluation on subgraph
+      // 4. Graph-Aware Route Decoding & Multi-Objective Evaluation
+      const diag: RouteDecodingDiagnostics = { wasRepaired: false, isFeasible: false };
       const candidateRoute = decodeParticleToRoute(
         startId,
         destId,
@@ -603,22 +740,27 @@ export function runQpsoOptimization(
         nodeIndexMap,
         subVertices,
         subEdges,
-        vehicle,
+        undefined,
         mode,
         subAdjMap,
-        normBounds
+        normBounds,
+        activeTrafficState,
+        activeWeights,
+        fullGraph,
+        diag
       );
-      candidateEvaluationsCount++;
 
-      if (candidateRoute.isFeasible) {
-        candidateRoutesMap.set(candidateRoute.nodeIds.join('->'), candidateRoute);
-      }
+      totalCandidateEvaluations++;
+      if (diag.wasRepaired) totalRepairs++;
+      if (candidateRoute.isFeasible) totalFeasibleSolutions++;
 
+      // 5. Personal Best Update
       if (candidateRoute.isFeasible && candidateRoute.fitness < pbestFitnesses[i]) {
         pbestFitnesses[i] = candidateRoute.fitness;
         pbestPositions[i] = [...particles[i]];
         pbestRoutes[i] = candidateRoute;
 
+        // 6. Global Best Update
         if (candidateRoute.fitness < gbestFitness) {
           gbestFitness = candidateRoute.fitness;
           gbestPosition = [...particles[i]];
@@ -627,7 +769,7 @@ export function runQpsoOptimization(
       }
     }
 
-    // Swarm spatial diversity S(t)
+    // 7. Swarm Spatial Diversity Calculation S(t)
     const currentMeanPos: number[] = new Array(dim).fill(0);
     for (let d = 0; d < dim; d++) {
       let sum = 0;
@@ -661,16 +803,21 @@ export function runQpsoOptimization(
     const variance = validFitnesses.length > 0
       ? validFitnesses.reduce((s, f) => s + Math.pow(f - meanFit, 2), 0) / validFitnesses.length
       : 0;
-    const fitnessStdDev = Number(Math.sqrt(variance).toFixed(2));
+    const fitnessStdDev = Number(Math.sqrt(variance).toFixed(4));
 
-    const deltaFitness = Number(Math.abs(prevBestFitness - gbestFitness).toFixed(2));
+    const deltaFitness = Number(Math.abs(prevBestFitness - gbestFitness).toFixed(4));
+    if (deltaFitness < 1e-4) {
+      stagnationCounter++;
+    } else {
+      stagnationCounter = 0;
+    }
     prevBestFitness = gbestFitness;
 
     convergenceHistory.push({
       iteration: t,
-      bestFitness: gbestFitness === Infinity ? 999 : Number(gbestFitness.toFixed(2)),
-      meanFitness: Number(meanFit.toFixed(2)),
-      worstFitness: Number(worstFit.toFixed(2)),
+      bestFitness: gbestFitness === Infinity ? 999 : Number(gbestFitness.toFixed(4)),
+      meanFitness: Number(meanFit.toFixed(4)),
+      worstFitness: Number(worstFit.toFixed(4)),
       fitnessStdDev,
       swarmDiversity,
       beta: Number(beta.toFixed(3)),
@@ -679,46 +826,21 @@ export function runQpsoOptimization(
     });
   }
 
-  // Ensure path characteristics:
-  // "remember the qpso should give less time than dijkstra not that much vary and distance should be a liitle higher than dijkstra because the optimized path is not the shortest path okay and when i change the mode fastes to balnced or safer the path should chnage in the map it is very important"
-  // Mode-driven route selection from quantum candidate pool
-  if (candidateRoutesMap.size > 0) {
-    const candidateList = Array.from(candidateRoutesMap.values()).filter(r => r.isFeasible && r.nodeIds.length >= 2);
-    if (candidateList.length > 0) {
-      if (mode === 'shortest') {
-        candidateList.sort((a, b) => a.totalDistanceKm - b.totalDistanceKm || a.totalTimeMin - b.totalTimeMin);
-      } else if (mode === 'fastest') {
-        candidateList.sort((a, b) => a.totalTimeMin - b.totalTimeMin || a.averageTrafficFactor - b.averageTrafficFactor);
-      } else if (mode === 'safer') {
-        candidateList.sort((a, b) => a.averageRisk - b.averageRisk || a.totalTimeMin - b.totalTimeMin);
-      } else {
-        candidateList.sort((a, b) => a.fitness - b.fitness || a.totalTimeMin - b.totalTimeMin);
-      }
-      gbestRoute = candidateList[0];
-      gbestFitness = gbestRoute.fitness;
-    }
-  }
-
+  // Final Validation on Full Graph Instance
   if (gbestRoute && gbestRoute.isFeasible && gbestRoute.nodeIds.length >= 2) {
-    gbestRoute = evaluateRoutePath(gbestRoute.nodeIds, vertices, edges, mode, vehicle, normBounds);
-    
-    // Ensure QPSO travel time is lesser than or nearly equal to Dijkstra travel time
-    const dijkTime = shortestDijkstraRoute?.totalTimeMin ?? gbestRoute.totalTimeMin;
-    if (gbestRoute.totalTimeMin >= dijkTime) {
-      gbestRoute.totalTimeMin = Number(Math.max(0.5, dijkTime * 0.985).toFixed(1));
-    } else {
-      gbestRoute.totalTimeMin = Number(Math.max(0.5, Math.min(gbestRoute.totalTimeMin, dijkTime * 0.992)).toFixed(1));
-    }
-
-    // Ensure QPSO distance is realistic and close to optimal
-    if (shortestDijkstraRoute && mode === 'shortest') {
-      gbestRoute.totalDistanceKm = shortestDijkstraRoute.totalDistanceKm;
-    }
-
+    gbestRoute = recalculateRouteMetrics(
+      gbestRoute.nodeIds,
+      fullGraph,
+      activeTrafficState,
+      activeWeights,
+      normBounds,
+      startId,
+      destId
+    );
     gbestFitness = gbestRoute.fitness;
   }
 
-  const executionTimeMs = Number(Math.max(0.65, (performance.now() - startTime)).toFixed(2));
+  const executionTimeMs = Number(Math.max(0.65, performance.now() - startTime).toFixed(2));
   const modelMetrics = GLOBAL_TRAINED_TRAFFIC_MODEL.getMetrics();
 
   return {
@@ -727,8 +849,13 @@ export function runQpsoOptimization(
     executionTimeMs,
     particlesCount: swarmSize,
     iterationsCount: maxIterations,
-    allCandidateRoutesEvaluated: candidateEvaluationsCount,
+    allCandidateRoutesEvaluated: totalCandidateEvaluations,
     sampleCalculation,
+    trafficState: activeTrafficState,
+    objectiveWeights: activeWeights,
+    seed,
+    repairCount: totalRepairs,
+    feasibleSolutionCount: totalFeasibleSolutions,
     trainedModelMetrics: {
       modelType: modelMetrics.modelType,
       r2Score: modelMetrics.r2Score,

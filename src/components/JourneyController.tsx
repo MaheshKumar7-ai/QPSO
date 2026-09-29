@@ -85,18 +85,6 @@ export const JourneyController: React.FC<JourneyControllerProps> = ({
       icon: ShieldAlert,
       mathEffect: '+5.0 Risk Score Penalty',
     },
-    {
-      type: 'flood',
-      label: 'Flash Flood / Waterlogging',
-      icon: Waves,
-      mathEffect: 'Road Impassable / Flooded (∞ Weight). Forces dynamic detour.',
-    },
-    {
-      type: 'hazardous_road',
-      label: 'Hazardous Road / Debris',
-      icon: AlertTriangle,
-      mathEffect: '+4.0 Risk Penalty',
-    },
   ];
 
   return (

@@ -5,1158 +5,1204 @@
 
 import React, { useState, useEffect, useCallback, startTransition } from 'react';
 import {
-  VehicleType,
   OptimizationMode,
+  ObjectiveWeights,
+  DayType,
+  TrafficState,
   GraphVertex,
   GraphEdge,
-  EvaluatedRoute,
   QpsoResult,
   AlgorithmBenchmarkResult,
   DynamicRerouteState,
   IncidentType,
-  MultiModeRoutes,
+  EvaluatedRoute,
+  VehicleType,
 } from './types';
-import {
-  buildCompleteRegionalGraph,
-  resolveLocationToNode,
-  findNearestNode,
-  REGIONAL_NODES,
-} from './data/roadNetworks';
+import { buildCompleteRegionalGraph } from './data/roadNetworks';
 import { runQpsoOptimization, findShortestDijkstraPath } from './algorithms/qpso';
 import { runSystematicBenchmark } from './algorithms/benchmarks';
-import { evaluateRoutePath } from './algorithms/evaluator';
-
-// Components
+import {
+  DirectedWeightedGraph,
+  runDijkstraShortestPath,
+  runAStarShortestPath,
+} from './core';
+import {
+  evaluateRoutePath,
+  formatDurationHuman,
+  OBJECTIVE_WEIGHT_PRESETS,
+  normalizeObjectiveWeights,
+  computeGraphNormalizationBounds,
+} from './algorithms/evaluator';
+import {
+  buildTrafficState,
+  TRAFFIC_TIME_PRESETS,
+  GLOBAL_TRAINED_TRAFFIC_MODEL,
+} from './algorithms/trafficModel';
 import { MapComponent } from './components/MapComponent';
 import { GraphVisualizer } from './components/GraphVisualizer';
 import { RouteSummary } from './components/RouteSummary';
-import { QpsoExplorationView } from './components/QpsoExplorationView';
 import { BenchmarkSection } from './components/BenchmarkSection';
-import { IncidentModal } from './components/IncidentModal';
 import { DynamicReroutingPanel } from './components/DynamicReroutingPanel';
-import { RouteDetailsModal } from './components/RouteDetailsModal';
-import { LocationInput } from './components/LocationInput';
-import { JourneyController, JourneySimulationState } from './components/JourneyController';
-
-// Clean helper icons
+import { FleetVrpPage } from './components/FleetVrp/FleetVrpPage';
 import {
-  ArrowLeftRight,
-  Car,
-  Bike,
-  Bus,
-  Truck,
-  ShieldAlert,
-  Map,
-  Network,
-  BarChart3,
-  Zap,
-  Gauge,
-  ShieldCheck,
-  Loader2,
+  Play,
+  RotateCcw,
+  AlertTriangle,
+  Sliders,
   CheckCircle2,
-  X,
-  Sparkles,
+  MapPin,
+  Network,
+  ArrowUpDown,
+  ShieldAlert,
+  Car,
+  Truck,
 } from 'lucide-react';
 
-export default function App() {
-  // Master graph state
-  const [graphData, setGraphData] = useState<{ vertices: GraphVertex[]; edges: GraphEdge[] }>(
-    () => buildCompleteRegionalGraph()
-  );
+export function App() {
+  // Navigation Page View State
+  const [activeView, setActiveView] = useState<'optimizer' | 'vrp'>('optimizer');
 
-  // User Pending Inputs (Form controls)
-  const [startNode, setStartNode] = useState<GraphVertex>(() =>
-    resolveLocationToNode('Vijayawada', REGIONAL_NODES).vertex
-  );
-  const [destNode, setDestNode] = useState<GraphVertex>(() =>
-    resolveLocationToNode('Visakhapatnam', REGIONAL_NODES).vertex
-  );
-  const [startQuery, setStartQuery] = useState<string>('Vijayawada');
-  const [destQuery, setDestQuery] = useState<string>('Visakhapatnam');
-  const [startDistanceKm, setStartDistanceKm] = useState<number>(0);
-  const [destDistanceKm, setDestDistanceKm] = useState<number>(0);
-  const [selectedVehicle, setSelectedVehicle] = useState<VehicleType>('car');
-  const [optimizationMode, setOptimizationMode] = useState<OptimizationMode>('safer');
-  const [isCalculating, setIsCalculating] = useState<boolean>(false);
+  // 1. Core Network Graph State (Andhra Pradesh Road Network)
+  const [vertices, setVertices] = useState<GraphVertex[]>([]);
+  const [edges, setEdges] = useState<GraphEdge[]>([]);
+  const [startNodeId, setStartNodeId] = useState<string>('VIJAYAWADA');
+  const [destNodeId, setDestNodeId] = useState<string>('VISAKHAPATNAM');
 
-  // Applied / Active Calculated Settings (Only updated upon clicking "Calculate Route")
-  const [appliedVehicle, setAppliedVehicle] = useState<VehicleType>('car');
-  const [appliedMode, setAppliedMode] = useState<OptimizationMode>('safer');
-  const [appliedStartNode, setAppliedStartNode] = useState<GraphVertex>(() =>
-    resolveLocationToNode('Vijayawada', REGIONAL_NODES).vertex
+  // 2. Time-Dependent Traffic State & Multi-Objective Weights
+  const [trafficTimestamp, setTrafficTimestamp] = useState<string>('08:30');
+  const [dayType, setDayType] = useState<DayType>('weekday');
+  const [optimizationMode] = useState<OptimizationMode>('balanced');
+  const [objectiveWeights, setObjectiveWeights] = useState<ObjectiveWeights>(
+    OBJECTIVE_WEIGHT_PRESETS.balanced
   );
-  const [appliedDestNode, setAppliedDestNode] = useState<GraphVertex>(() =>
-    resolveLocationToNode('Visakhapatnam', REGIONAL_NODES).vertex
-  );
+  const [trafficState, setTrafficState] = useState<TrafficState | null>(null);
 
-  // Success Notification Toast
-  const [notification, setNotification] = useState<{ show: boolean; message: string } | null>(null);
+  // Isolated legacy vehicle state (isolated from core route optimization)
+  const [vehicleType] = useState<VehicleType>('car');
 
-  // Active UI View Tab
-  const [activeTab, setActiveTab] = useState<'map' | 'graph' | 'benchmarks'>('map');
+  // 3. QPSO Hyperparameters
+  const [swarmSize, setSwarmSize] = useState<number>(18);
+  const [maxIterations, setMaxIterations] = useState<number>(30);
+  const [showAdvancedParams, setShowAdvancedParams] = useState<boolean>(false);
 
-  // Outputs
+  // 4. Execution & Results State
+  const [selectedAlgorithm, setSelectedAlgorithm] = useState<'QPSO' | 'Dijkstra' | 'A*'>('QPSO');
+  const [isOptimizing, setIsOptimizing] = useState<boolean>(false);
   const [qpsoResult, setQpsoResult] = useState<QpsoResult | null>(null);
-  const [benchmarkResults, setBenchmarkResults] = useState<AlgorithmBenchmarkResult[]>([]);
-  const [activeRoute, setActiveRoute] = useState<EvaluatedRoute | null>(null);
-  const [shortestRoute, setShortestRoute] = useState<EvaluatedRoute | null>(null);
-  const [multiModeRoutes, setMultiModeRoutes] = useState<MultiModeRoutes>({
-    fastest: null,
-    balanced: null,
-    safer: null,
-    shortest: null,
-  });
-
-  // Dynamic Reroute & Incidents
+  const [initialBaselineRoute, setInitialBaselineRoute] = useState<EvaluatedRoute | null>(null);
+  const [dijkstraResult, setDijkstraResult] = useState<EvaluatedRoute | null>(null);
+  const [aStarResult, setAStarResult] = useState<EvaluatedRoute | null>(null);
+  const [shortestPathRoute, setShortestPathRoute] = useState<EvaluatedRoute | null>(null);
+  const [benchmarks, setBenchmarks] = useState<AlgorithmBenchmarkResult[]>([]);
   const [dynamicReroute, setDynamicReroute] = useState<DynamicRerouteState | null>(null);
-  const [isIncidentModalOpen, setIsIncidentModalOpen] = useState<boolean>(false);
-  const [selectedEdgeForIncident, setSelectedEdgeForIncident] = useState<string | undefined>(undefined);
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState<boolean>(false);
 
-  // Live Journey Simulation Engine State
-  const [simState, setSimState] = useState<JourneySimulationState>({
-    isSimulating: false,
-    isPaused: false,
-    speedMultiplier: 1,
-    currentNodeIndex: 0,
-    subStepIndex: 0,
-    currentNodeId: '',
-    nextNodeId: null,
-    currentCoords: null,
-    traveledNodeIds: [],
-    traveledDistanceKm: 0,
-    traveledTimeMin: 0,
-    progressPercent: 0,
-    hasArrived: false,
-  });
+  // 5. En-Route Simulation & Isolated Incident Testing State
+  const [simProgressIndex, setSimProgressIndex] = useState<number>(0);
+  const [isSimulatingDrive, setIsSimulatingDrive] = useState<boolean>(false);
+  const [selectedIncidentEdgeId, setSelectedIncidentEdgeId] = useState<string>('');
+  const [selectedIncidentType, setSelectedIncidentType] = useState<IncidentType>('accident');
+  const [incidentSeverity, setIncidentSeverity] = useState<'moderate' | 'high' | 'critical'>('high');
+  const [showIncidentDrawer, setShowIncidentDrawer] = useState<boolean>(false);
+  const [mapViewTab, setMapViewTab] = useState<'map' | 'graph'>('map');
+  const [selectedNodeOnMap, setSelectedNodeOnMap] = useState<GraphVertex | null>(null);
 
-  const handleStartJourney = useCallback(() => {
-    if (!activeRoute || activeRoute.nodeIds.length < 2) return;
-    const startId = activeRoute.nodeIds[0];
-    const startV = graphData.vertices.find(v => v.id === startId);
-    setSimState({
-      isSimulating: true,
-      isPaused: false,
-      speedMultiplier: 1,
-      currentNodeIndex: 0,
-      subStepIndex: 0,
-      currentNodeId: startId,
-      nextNodeId: activeRoute.nodeIds[1] || null,
-      currentCoords: startV ? startV.coords : null,
-      traveledNodeIds: [startId],
-      traveledDistanceKm: 0,
-      traveledTimeMin: 0,
-      progressPercent: 0,
-      hasArrived: false,
+  // Initialize Andhra Pradesh Road Network
+  useEffect(() => {
+    const { vertices: vList, edges: eList } = buildCompleteRegionalGraph();
+    GLOBAL_TRAINED_TRAFFIC_MODEL.trainModel();
+
+    const enrichedEdges = eList.map(e => {
+      const pred = GLOBAL_TRAINED_TRAFFIC_MODEL.predictEdge(e, 8.5);
+      return {
+        ...e,
+        historical_congestion: pred.predictedCongestion,
+        historical_risk: pred.predictedRiskScore,
+      };
     });
-    setNotification({ show: true, message: '🚀 Journey started! Vehicle moving slowly en-route...' });
-  }, [activeRoute, graphData.vertices]);
 
-  const handlePauseJourney = useCallback(() => {
-    setSimState(prev => ({ ...prev, isPaused: true }));
+    setVertices(vList);
+    setEdges(enrichedEdges);
   }, []);
 
-  const handleResumeJourney = useCallback(() => {
-    setSimState(prev => ({ ...prev, isPaused: false }));
-  }, []);
+  // Adjust Custom Weight Slider while keeping wT + wD + wC = 1
+  const handleWeightChange = (changedKey: keyof ObjectiveWeights, rawValue: number) => {
+    const clamped = Math.max(0, Math.min(1, rawValue));
+    const remaining = Math.max(0, 1 - clamped);
+    const otherKeys = (['wT', 'wD', 'wC'] as const).filter(k => k !== changedKey);
+    const otherSum = otherKeys.reduce((acc, k) => acc + objectiveWeights[k], 0);
 
-  const handleResetJourney = useCallback(() => {
-    setSimState({
-      isSimulating: false,
-      isPaused: false,
-      speedMultiplier: 1,
-      currentNodeIndex: 0,
-      subStepIndex: 0,
-      currentNodeId: '',
-      nextNodeId: null,
-      currentCoords: null,
-      traveledNodeIds: [],
-      traveledDistanceKm: 0,
-      traveledTimeMin: 0,
-      progressPercent: 0,
-      hasArrived: false,
-    });
-  }, []);
-
-  const handleChangeSimSpeed = useCallback((speed: number) => {
-    setSimState(prev => ({ ...prev, speedMultiplier: speed }));
-  }, []);
-
-  // Live Time
-  const [currentTimeString, setCurrentTimeString] = useState<string>('');
-
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      setCurrentTimeString(
-        now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-      );
-    };
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Auto-dismiss notification after 3.5 seconds
-  useEffect(() => {
-    if (notification?.show) {
-      const timer = setTimeout(() => {
-        setNotification(null);
-      }, 3500);
-      return () => clearTimeout(timer);
-    }
-  }, [notification]);
-
-  // Vehicle Journey Simulation Timer Effect (Slow & Smooth Interpolated Motion Engine)
-  useEffect(() => {
-    if (!simState.isSimulating || simState.isPaused || !activeRoute || activeRoute.segments.length === 0) {
-      return;
-    }
-
-    // 35 smooth steps per highway segment
-    const SUB_STEPS_PER_SEGMENT = 35;
-    // 250ms at 1x speed = ~8.75s per road segment (very slow, calm, realistic motion)
-    const tickIntervalMs = Math.max(50, Math.round(250 / simState.speedMultiplier));
-
-    const timer = setInterval(() => {
-      setSimState(prev => {
-        if (!prev.isSimulating || prev.isPaused) return prev;
-
-        const totalSegs = activeRoute.segments.length;
-        const currentSegIdx = prev.currentNodeIndex;
-
-        if (currentSegIdx >= totalSegs) {
-          setNotification({ show: true, message: '🏁 Journey completed! Arrived at destination.' });
-          return { ...prev, isSimulating: false, hasArrived: true, progressPercent: 100 };
-        }
-
-        const currentSeg = activeRoute.segments[currentSegIdx];
-        const startCoords = currentSeg.fromNode.coords;
-        const endCoords = currentSeg.toNode.coords;
-
-        // Cumulative distance & time for prior completed segments
-        let baseDistKm = 0;
-        let baseTimeMin = 0;
-        for (let i = 0; i < currentSegIdx; i++) {
-          baseDistKm += activeRoute.segments[i].segmentDistanceKm;
-          baseTimeMin += activeRoute.segments[i].adjustedTimeMin;
-        }
-
-        const currentSubStep = (prev.subStepIndex || 0) + 1;
-
-        if (currentSubStep <= SUB_STEPS_PER_SEGMENT) {
-          // Smooth coordinate interpolation along the road line
-          const frac = currentSubStep / SUB_STEPS_PER_SEGMENT;
-          const lat = startCoords.lat + (endCoords.lat - startCoords.lat) * frac;
-          const lng = startCoords.lng + (endCoords.lng - startCoords.lng) * frac;
-
-          const segDistCovered = currentSeg.segmentDistanceKm * frac;
-          const segTimeCovered = currentSeg.adjustedTimeMin * frac;
-
-          const totalTraveledDist = Number((baseDistKm + segDistCovered).toFixed(1));
-          const totalTraveledTime = Number((baseTimeMin + segTimeCovered).toFixed(1));
-          const progressPct = Math.min(100, Math.round((totalTraveledDist / activeRoute.totalDistanceKm) * 100));
-
-          return {
-            ...prev,
-            subStepIndex: currentSubStep,
-            currentCoords: { lat, lng },
-            traveledDistanceKm: totalTraveledDist,
-            traveledTimeMin: totalTraveledTime,
-            progressPercent: progressPct,
-          };
-        } else {
-          // Advance to next segment junction
-          const nextSegIdx = currentSegIdx + 1;
-          const nextNodeId = activeRoute.nodeIds[nextSegIdx] || prev.currentNodeId;
-          const nextV = graphData.vertices.find(v => v.id === nextNodeId);
-
-          const visitedNodes = [...prev.traveledNodeIds];
-          if (nextNodeId && !visitedNodes.includes(nextNodeId)) {
-            visitedNodes.push(nextNodeId);
-          }
-
-          const isFinished = nextSegIdx >= totalSegs;
-
-          return {
-            ...prev,
-            currentNodeIndex: nextSegIdx,
-            subStepIndex: 0,
-            currentNodeId: nextNodeId,
-            nextNodeId: activeRoute.nodeIds[nextSegIdx + 1] || null,
-            currentCoords: nextV ? nextV.coords : prev.currentCoords,
-            traveledNodeIds: visitedNodes,
-            hasArrived: isFinished,
-            isSimulating: !isFinished,
-            progressPercent: isFinished ? 100 : prev.progressPercent,
-          };
-        }
+    const next: ObjectiveWeights = { ...objectiveWeights, [changedKey]: Number(clamped.toFixed(2)) };
+    if (otherSum > 1e-6) {
+      otherKeys.forEach(k => {
+        next[k] = Number(((objectiveWeights[k] / otherSum) * remaining).toFixed(2));
       });
-    }, tickIntervalMs);
+    } else {
+      otherKeys.forEach(k => {
+        next[k] = Number((remaining / otherKeys.length).toFixed(2));
+      });
+    }
+    setObjectiveWeights(normalizeObjectiveWeights(next));
+  };
 
-    return () => clearInterval(timer);
-  }, [simState.isSimulating, simState.isPaused, simState.speedMultiplier, activeRoute, graphData.vertices]);
-
-  // Primary Optimization Routine: Runs QPSO independently for each mode
+  // Execute Optimization Pipeline
   const executeOptimization = useCallback(
     (
-      sNode: GraphVertex,
-      dNode: GraphVertex,
+      currentVertices: GraphVertex[],
+      currentEdges: GraphEdge[],
+      startId: string,
+      destId: string,
       mode: OptimizationMode,
-      vehicle: VehicleType,
-      currentEdges: GraphEdge[]
+      weights: ObjectiveWeights,
+      timestamp: string,
+      currentDayType: DayType,
+      particles: number,
+      iterations: number
     ) => {
-      // 1. Run QPSO independently for all 3 modes using mode-specific objective weights on subgraph
-      const qpsoFastest = runQpsoOptimization(
-        sNode.id,
-        dNode.id,
-        graphData.vertices,
-        currentEdges,
-        'fastest',
-        vehicle,
-        { swarmSize: 18, maxIterations: 30 }
-      );
+      if (currentVertices.length === 0 || currentEdges.length === 0) return;
 
-      const qpsoBalanced = runQpsoOptimization(
-        sNode.id,
-        dNode.id,
-        graphData.vertices,
+      const currentTrafficState = buildTrafficState(
         currentEdges,
-        'balanced',
-        vehicle,
-        { swarmSize: 18, maxIterations: 30 }
+        timestamp,
+        currentDayType
       );
+      const normalizedWeights = normalizeObjectiveWeights(weights);
+      const graph = DirectedWeightedGraph.fromNetwork(currentVertices, currentEdges);
+      const normBounds = graph.computeNormalizationBounds(currentTrafficState);
 
-      const qpsoSafer = runQpsoOptimization(
-        sNode.id,
-        dNode.id,
-        graphData.vertices,
-        currentEdges,
-        'safer',
-        vehicle,
-        { swarmSize: 18, maxIterations: 30 }
-      );
-
-      const qpsoShortest = runQpsoOptimization(
-        sNode.id,
-        dNode.id,
-        graphData.vertices,
-        currentEdges,
-        'shortest',
-        vehicle,
-        { swarmSize: 18, maxIterations: 30 }
-      );
-
-      // 2. Pure Shortest Path (geometric distance) for baseline overlay (Blue)
-      const shortestNodeIds = findShortestDijkstraPath(
-        sNode.id,
-        dNode.id,
-        graphData.vertices,
-        currentEdges,
-        vehicle,
-        undefined,
-        'shortest'
-      );
-      const pureShortestRoute = shortestNodeIds.length >= 2
-        ? evaluateRoutePath(shortestNodeIds, graphData.vertices, currentEdges, 'shortest', vehicle)
-        : null;
-
-      // 3. Systematic Algorithm Benchmarks (Dijkstra, A*, PSO, GA, ACO, QPSO)
-      const bench = runSystematicBenchmark(
-        sNode.id,
-        dNode.id,
-        graphData.vertices,
+      // 1. Quantum Swarm Optimization
+      const qpso = runQpsoOptimization(
+        startId,
+        destId,
+        currentVertices,
         currentEdges,
         mode,
-        vehicle
+        undefined,
+        {
+          swarmSize: particles,
+          maxIterations: iterations,
+          trafficState: currentTrafficState,
+          objectiveWeights: normalizedWeights,
+        }
       );
 
-      const computedMultiModes: MultiModeRoutes = {
-        fastest: qpsoFastest.bestRoute,
-        balanced: qpsoBalanced.bestRoute,
-        safer: qpsoSafer.bestRoute,
-        shortest: qpsoShortest.bestRoute,
-      };
+      // 2. Exact Dijkstra Shortest Path on Directed Weighted Graph
+      const dijkstraRoute = runDijkstraShortestPath(
+        graph,
+        startId,
+        destId,
+        currentTrafficState,
+        normalizedWeights,
+        normBounds
+      );
 
-      const selectedQpso =
-        mode === 'fastest' ? qpsoFastest :
-        mode === 'safer' ? qpsoSafer :
-        mode === 'shortest' ? qpsoShortest : qpsoBalanced;
-      const selectedRoute = computedMultiModes[mode] || qpsoBalanced.bestRoute;
+      // 3. Exact A* Shortest Path with Multi-Objective Admissible Heuristic
+      const aStarRoute = runAStarShortestPath(
+        graph,
+        startId,
+        destId,
+        currentTrafficState,
+        normalizedWeights,
+        normBounds
+      );
+
+      // 4. Comparative Metaheuristic & Exact Benchmarks
+      const bench = runSystematicBenchmark(
+        startId,
+        destId,
+        currentVertices,
+        currentEdges,
+        mode,
+        undefined,
+        iterations,
+        currentTrafficState,
+        normalizedWeights
+      );
+
+      const shortestNodes = findShortestDijkstraPath(
+        startId,
+        destId,
+        currentVertices,
+        currentEdges,
+        undefined,
+        undefined,
+        'shortest',
+        normBounds,
+        currentTrafficState,
+        { wT: 0, wD: 1, wC: 0 }
+      );
+
+      const shortestEval =
+        shortestNodes.length > 0
+          ? evaluateRoutePath(
+              shortestNodes,
+              currentVertices,
+              currentEdges,
+              mode,
+              undefined,
+              normBounds,
+              currentTrafficState,
+              normalizedWeights,
+              startId,
+              destId
+            )
+          : null;
 
       startTransition(() => {
-        setMultiModeRoutes(computedMultiModes);
-        setQpsoResult(selectedQpso);
-        setActiveRoute(selectedRoute);
-        setShortestRoute(pureShortestRoute);
-        setBenchmarkResults(bench);
+        setTrafficState(currentTrafficState);
+        setQpsoResult(qpso);
+        setInitialBaselineRoute(prev => (dynamicReroute ? prev : qpso.bestRoute));
+        setDijkstraResult(dijkstraRoute);
+        setAStarResult(aStarRoute);
+        setShortestPathRoute(shortestEval);
+        setBenchmarks(bench);
       });
+
+      if (qpso.bestRoute && qpso.bestRoute.segments.length > 0 && !selectedIncidentEdgeId) {
+        const midIdx = Math.floor(qpso.bestRoute.segments.length / 2);
+        setSelectedIncidentEdgeId(qpso.bestRoute.segments[midIdx].edge.id);
+      }
     },
-    [graphData.vertices]
+    [selectedIncidentEdgeId, dynamicReroute]
   );
 
-  // User Selection Handlers (State changes in form only; calculation triggered on Calculate Route)
-  const handleStartSelect = (vertex: GraphVertex, customQueryName?: string, distanceKm: number = 0) => {
-    setStartNode(vertex);
-    setStartQuery(customQueryName || vertex.name);
-    setStartDistanceKm(distanceKm);
-  };
+  // Trigger optimization when core parameters change
+  useEffect(() => {
+    if (vertices.length > 0 && edges.length > 0) {
+      const timer = setTimeout(() => {
+        executeOptimization(
+          vertices,
+          edges,
+          startNodeId,
+          destNodeId,
+          optimizationMode,
+          objectiveWeights,
+          trafficTimestamp,
+          dayType,
+          swarmSize,
+          maxIterations
+        );
+      }, 15);
+      return () => clearTimeout(timer);
+    }
+  }, [
+    vertices,
+    edges,
+    startNodeId,
+    destNodeId,
+    optimizationMode,
+    objectiveWeights,
+    trafficTimestamp,
+    dayType,
+    swarmSize,
+    maxIterations,
+    executeOptimization,
+  ]);
 
-  const handleDestSelect = (vertex: GraphVertex, customQueryName?: string, distanceKm: number = 0) => {
-    setDestNode(vertex);
-    setDestQuery(customQueryName || vertex.name);
-    setDestDistanceKm(distanceKm);
-  };
-
-  const handleSwapStartAndDest = () => {
-    const newStart = destNode;
-    const newDest = startNode;
-    const newStartQuery = destQuery;
-    const newDestQuery = startQuery;
-    const newStartDist = destDistanceKm;
-    const newDestDist = startDistanceKm;
-
-    setStartNode(newStart);
-    setStartQuery(newStartQuery);
-    setStartDistanceKm(newStartDist);
-
-    setDestNode(newDest);
-    setDestQuery(newDestQuery);
-    setDestDistanceKm(newDestDist);
-  };
-
-  const handleOptimizeClick = () => {
-    setIsCalculating(true);
-
-    const sResolved = resolveLocationToNode(startQuery, graphData.vertices);
-    const dResolved = resolveLocationToNode(destQuery, graphData.vertices);
-
-    setStartNode(sResolved.vertex);
-    setStartDistanceKm(sResolved.distanceKm);
-    setDestNode(dResolved.vertex);
-    setDestDistanceKm(dResolved.distanceKm);
+  // Swap Start & Destination
+  const handleSwapLocations = () => {
     setDynamicReroute(null);
-
-    // Provide visible rotating process animation feedback
-    setTimeout(() => {
-      executeOptimization(
-        sResolved.vertex,
-        dResolved.vertex,
-        optimizationMode,
-        selectedVehicle,
-        graphData.edges
-      );
-
-      // Lock in active applied settings
-      setAppliedVehicle(selectedVehicle);
-      setAppliedMode(optimizationMode);
-      setAppliedStartNode(sResolved.vertex);
-      setAppliedDestNode(dResolved.vertex);
-
-      setIsCalculating(false);
-      setNotification({ show: true, message: 'Changes successfully updated' });
-    }, 450);
+    setSimProgressIndex(0);
+    setIsSimulatingDrive(false);
+    const temp = startNodeId;
+    setStartNodeId(destNodeId);
+    setDestNodeId(temp);
   };
 
-  const handleVehicleSelect = (vehicle: VehicleType) => {
-    setSelectedVehicle(vehicle);
-  };
+  // En-Route Progression Timer
+  useEffect(() => {
+    if (!isSimulatingDrive || !qpsoResult?.bestRoute) return;
+    const routeNodes = qpsoResult.bestRoute.nodeIds;
+    if (simProgressIndex >= routeNodes.length - 1) {
+      setIsSimulatingDrive(false);
+      return;
+    }
+    const timer = setTimeout(() => {
+      setSimProgressIndex(prev => Math.min(prev + 1, routeNodes.length - 1));
+    }, 1800);
+    return () => clearTimeout(timer);
+  }, [isSimulatingDrive, simProgressIndex, qpsoResult]);
 
-  const handleModeSelect = (mode: OptimizationMode) => {
-    setOptimizationMode(mode);
-    setAppliedMode(mode);
-    executeOptimization(appliedStartNode, appliedDestNode, mode, appliedVehicle, graphData.edges);
-    setNotification({ show: true, message: `Switched to ${mode.toUpperCase()} route` });
-  };
+  // Isolated Incident Injection & Rerouting
+  const handleInjectIncident = (overrideEdgeId?: string) => {
+    const targetEdgeId = overrideEdgeId || selectedIncidentEdgeId;
+    const currentBest = qpsoResult?.bestRoute || activeRoute;
+    if (!targetEdgeId || !currentBest) return;
 
-  // Check if user has chosen settings that haven't been calculated yet
-  const hasPendingChanges =
-    activeRoute !== null &&
-    (selectedVehicle !== appliedVehicle ||
-    optimizationMode !== appliedMode ||
-    startNode.id !== appliedStartNode.id ||
-    destNode.id !== appliedDestNode.id ||
-    startQuery !== appliedStartNode.name ||
-    destQuery !== appliedDestNode.name);
-
-  // "Use Current Location" handler
-  const handleUseCurrentLocation = () => {
-    if (!navigator.geolocation) return;
-
-    navigator.geolocation.getCurrentPosition(
-      pos => {
-        const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        const nearest = findNearestNode(coords, graphData.vertices);
-        setStartNode(nearest);
-        setStartQuery(nearest.name);
-        setDynamicReroute(null);
-      },
-      err => {
-        console.warn('Geolocation fallback:', err);
-      }
-    );
-  };
-
-  // Incident Simulation Handlers
-  const handleApplyIncident = (
-    edgeId: string,
-    incidentType: string,
-    description: string
-  ) => {
-    // 1. Find targeted edge and determine endpoints
-    const targetEdge = graphData.edges.find(e => e.id === edgeId);
+    const beforeRoute = initialBaselineRoute || currentBest;
+    const targetEdge = edges.find(e => e.id === targetEdgeId);
     if (!targetEdge) return;
 
-    const fromNodeId = targetEdge.from;
-    const toNodeId = targetEdge.to;
+    const isBlocked = selectedIncidentType === 'road_block';
+    const trafficMultiplier =
+      selectedIncidentType === 'road_block'
+        ? 999
+        : selectedIncidentType === 'heavy_traffic'
+        ? incidentSeverity === 'critical'
+          ? 3.8
+          : incidentSeverity === 'high'
+          ? 2.9
+          : 1.9
+        : incidentSeverity === 'critical'
+        ? 4.5
+        : incidentSeverity === 'high'
+        ? 3.2
+        : 2.2;
 
-    // 2. Set realistic mathematical factors based on incident type
-    let isBlocked = incidentType === 'road_block' || incidentType === 'flood';
-    let trafficMultiplier = 1.0;
-    let riskAddition = 0;
+    const riskAddition =
+      selectedIncidentType === 'road_block'
+        ? 9.9
+        : incidentSeverity === 'critical'
+        ? 6
+        : incidentSeverity === 'high'
+        ? 4
+        : 2;
 
-    switch (incidentType) {
-      case 'road_block':
-        isBlocked = true;
-        trafficMultiplier = 99.0;
-        riskAddition = 10.0;
-        break;
-      case 'flood':
-        isBlocked = true;
-        trafficMultiplier = 99.0;
-        riskAddition = 10.0;
-        break;
-      case 'heavy_traffic':
-        isBlocked = false;
-        trafficMultiplier = 12.0;
-        riskAddition = 5.0;
-        break;
-      case 'accident':
-        isBlocked = false;
-        trafficMultiplier = 10.0;
-        riskAddition = 8.0;
-        break;
-      case 'hazardous_road':
-        isBlocked = false;
-        trafficMultiplier = 8.0;
-        riskAddition = 9.0;
-        break;
-      default:
-        isBlocked = false;
-        trafficMultiplier = 8.0;
-        riskAddition = 6.0;
-    }
+    const reducedSpeedKmH =
+      selectedIncidentType === 'road_block'
+        ? 0
+        : Math.max(10, Number((targetEdge.baseSpeedKmH / trafficMultiplier).toFixed(0)));
 
-    // 3. Update BOTH directions of this physical road segment in the network
-    const updatedEdges = graphData.edges.map(edge => {
-      const isMatchingRoad =
-        (edge.from === fromNodeId && edge.to === toNodeId) ||
-        (edge.from === toNodeId && edge.to === fromNodeId) ||
-        edge.id === edgeId;
+    const descriptions: Record<IncidentType, string> = {
+      accident: `Traffic accident reported on ${targetEdge.roadName}`,
+      road_block: `Full corridor closure and blockade on ${targetEdge.roadName}`,
+      heavy_traffic: `Severe congestion bottleneck on ${targetEdge.roadName}`,
+    };
 
-      if (isMatchingRoad) {
+    const updatedEdges = edges.map(edge => {
+      const isTarget =
+        edge.id === targetEdgeId ||
+        (edge.from === targetEdge.to && edge.to === targetEdge.from);
+      if (isTarget) {
         return {
           ...edge,
           incident: {
-            type: incidentType as any,
-            description: description || incidentType.replace('_', ' '),
+            type: selectedIncidentType,
+            description: descriptions[selectedIncidentType],
             trafficMultiplier,
             riskAddition,
+            reducedSpeedKmH,
             isBlocked,
           },
-          trafficFactor: isBlocked ? 99 : Math.max(edge.trafficFactor, trafficMultiplier),
-          riskScore: Math.min(10, edge.riskScore + riskAddition),
         };
       }
       return edge;
     });
 
-    setGraphData(prev => ({ ...prev, edges: updatedEdges }));
-
-    // 4. Capture baseline route before reroute
-    const beforeRoute = activeRoute;
-
-    // Determine vehicle's current en-route node position
-    const rerouteStartNodeId = simState.currentNodeId || appliedStartNode.id;
-
-    // Identify already traveled node sequence
-    let alreadyTraveledNodeIds: string[] = [appliedStartNode.id];
-    if (simState.traveledNodeIds && simState.traveledNodeIds.length > 0) {
-      alreadyTraveledNodeIds = simState.traveledNodeIds;
-    }
-
-    const traveledRouteObj = evaluateRoutePath(
-      alreadyTraveledNodeIds,
-      graphData.vertices,
-      graphData.edges,
-      appliedMode,
-      appliedVehicle
-    );
-
-    // 5. Run QPSO & Dijkstra optimization from CURRENT VEHICLE LOCATION to DESTINATION
-    const qpso = runQpsoOptimization(
-      rerouteStartNodeId,
-      appliedDestNode.id,
-      graphData.vertices,
+    const updatedTrafficState = buildTrafficState(
       updatedEdges,
-      appliedMode,
-      appliedVehicle,
-      { swarmSize: 25, maxIterations: 1000 }
+      trafficTimestamp,
+      dayType
     );
+    const normBounds = computeGraphNormalizationBounds(updatedEdges, updatedTrafficState);
 
-    const bench = runSystematicBenchmark(
-      rerouteStartNodeId,
-      appliedDestNode.id,
-      graphData.vertices,
+    const reoptimizedQpso = runQpsoOptimization(
+      startNodeId,
+      destNodeId,
+      vertices,
       updatedEdges,
-      appliedMode,
-      appliedVehicle
+      optimizationMode,
+      undefined,
+      {
+        swarmSize: Math.max(22, swarmSize),
+        maxIterations: Math.max(35, maxIterations),
+        trafficState: updatedTrafficState,
+        objectiveWeights,
+      }
     );
 
-    let newLegRoute = qpso.bestRoute;
-    const dijkstraBench = bench.find(b => b.algorithm === 'Dijkstra');
-    if (dijkstraBench && dijkstraBench.routeNodeIds.length > 0) {
-      const dijkstraRoute = evaluateRoutePath(
-        dijkstraBench.routeNodeIds,
-        graphData.vertices,
-        updatedEdges,
-        appliedMode,
-        appliedVehicle
-      );
-      if (dijkstraRoute.isFeasible) {
-        if (!newLegRoute || dijkstraRoute.fitness <= (newLegRoute.fitness || Infinity)) {
-          newLegRoute = dijkstraRoute;
-        }
-      }
-    }
+    const afterRoute =
+      reoptimizedQpso.bestRoute && reoptimizedQpso.bestRoute.isFeasible
+        ? reoptimizedQpso.bestRoute
+        : evaluateRoutePath(
+            beforeRoute.nodeIds,
+            vertices,
+            updatedEdges,
+            optimizationMode,
+            undefined,
+            normBounds,
+            updatedTrafficState,
+            objectiveWeights,
+            startNodeId,
+            destNodeId
+          );
 
-    // Combine traveled route + remaining re-optimized route
-    let combinedNodeIds = alreadyTraveledNodeIds;
-    if (newLegRoute && newLegRoute.isFeasible) {
-      // Avoid duplicate junction node
-      const remainingNodes = newLegRoute.nodeIds[0] === rerouteStartNodeId
-        ? newLegRoute.nodeIds.slice(1)
-        : newLegRoute.nodeIds;
-      combinedNodeIds = [...alreadyTraveledNodeIds, ...remainingNodes];
-    }
-
-    const combinedRoute = evaluateRoutePath(
-      combinedNodeIds,
-      graphData.vertices,
+    const newBenchmarks = runSystematicBenchmark(
+      startNodeId,
+      destNodeId,
+      vertices,
       updatedEdges,
-      appliedMode,
-      appliedVehicle
+      optimizationMode,
+      undefined,
+      maxIterations,
+      updatedTrafficState,
+      objectiveWeights
     );
 
-    // Find matching segment index in combinedRoute where fromNode.id === rerouteStartNodeId
-    let newSegIdx = 0;
-    if (combinedRoute && combinedRoute.segments.length > 0) {
-      const matchIdx = combinedRoute.segments.findIndex(s => s.fromNode.id === rerouteStartNodeId);
-      if (matchIdx !== -1) {
-        newSegIdx = matchIdx;
-      }
-    }
+    setEdges(updatedEdges);
+    setTrafficState(updatedTrafficState);
+    setQpsoResult(reoptimizedQpso);
+    setBenchmarks(newBenchmarks);
 
-    // Calculate traveled distance and time up to rerouteStartNodeId along combinedRoute
-    let baseDistKm = 0;
-    let baseTimeMin = 0;
-    for (let i = 0; i < newSegIdx; i++) {
-      baseDistKm += combinedRoute.segments[i].segmentDistanceKm;
-      baseTimeMin += combinedRoute.segments[i].adjustedTimeMin;
-    }
-
-    const currentV = graphData.vertices.find(v => v.id === rerouteStartNodeId);
-    const progressPct = combinedRoute.totalDistanceKm > 0
-      ? Math.min(100, Math.round((baseDistKm / combinedRoute.totalDistanceKm) * 100))
-      : 0;
-
-    startTransition(() => {
-      setQpsoResult(qpso);
-      setActiveRoute(combinedRoute);
-      setBenchmarkResults(bench);
-
-      // Resume vehicle motion along the new rerouted path from current location
-      setSimState(prev => {
-        const vehicleCoords = currentV ? currentV.coords : (prev.currentCoords || (appliedStartNode ? appliedStartNode.coords : null));
-        return {
-          ...prev,
-          isSimulating: true,
-          isPaused: false, // Immediately moves along new rerouted path
-          currentNodeIndex: newSegIdx,
-          subStepIndex: 0,
-          currentNodeId: rerouteStartNodeId,
-          nextNodeId: combinedRoute.nodeIds[newSegIdx + 1] || null,
-          currentCoords: vehicleCoords,
-          traveledNodeIds: alreadyTraveledNodeIds,
-          traveledDistanceKm: Number(baseDistKm.toFixed(1)),
-          traveledTimeMin: Number(baseTimeMin.toFixed(1)),
-          progressPercent: progressPct,
-          hasArrived: false,
-        };
-      });
-
-      if (beforeRoute && combinedRoute && combinedRoute.isFeasible) {
-        setDynamicReroute({
-          isActive: true,
-          currentLocationNodeId: rerouteStartNodeId,
-          incidentEdgeId: edgeId,
-          incidentType: incidentType as any,
-          beforeRoute,
-          afterRoute: combinedRoute,
-          alreadyTraveledRoute: traveledRouteObj,
-          additionalDistanceKm: Math.max(0, Number((combinedRoute.totalDistanceKm - beforeRoute.totalDistanceKm).toFixed(1))),
-          additionalTimeMin: Math.max(0, Number((combinedRoute.totalTimeMin - beforeRoute.totalTimeMin).toFixed(1))),
-          additionalFitness: Math.max(0, Number((combinedRoute.fitness - beforeRoute.fitness).toFixed(2))),
-        });
-
-        // Scroll smoothly to calculations breakdown section
-        setTimeout(() => {
-          document.getElementById('dynamic-reroute-breakdown')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }, 150);
-      }
-    });
-
-    setNotification({
-      show: true,
-      message: `⚠️ Incident reported! Path rerouted from ${rerouteStartNodeId} onward.`,
+    setDynamicReroute({
+      isActive: true,
+      currentLocationNodeId: startNodeId,
+      incidentEdgeId: targetEdge.id,
+      incidentType: selectedIncidentType,
+      beforeRoute,
+      afterRoute,
+      alreadyTraveledRoute: {
+        nodeIds: [startNodeId],
+        edges: [],
+        segments: [],
+        totalDistanceKm: 0,
+        totalTimeMin: 0,
+        totalCongestion: 1.0,
+        totalRisk: 0,
+        normalizedTime: 0,
+        normalizedDistance: 0,
+        normalizedCongestion: 0,
+        fitness: 0,
+        isFeasible: true,
+      },
+      additionalDistanceKm: Number(
+        (afterRoute.totalDistanceKm - beforeRoute.totalDistanceKm).toFixed(1)
+      ),
+      additionalTimeMin: Number(
+        (afterRoute.totalTimeMin - beforeRoute.totalTimeMin).toFixed(1)
+      ),
+      additionalFitness: Number(
+        (afterRoute.fitness - beforeRoute.fitness).toFixed(4)
+      ),
     });
   };
 
-  const handleTriggerEnRouteIncident = (type: IncidentType = 'road_block') => {
-    if (!activeRoute || activeRoute.segments.length === 0) return;
-    const currentLoc = simState.currentNodeId || appliedStartNode.id;
-    // Target the upcoming road segment ahead of vehicle
-    const upcomingSeg = activeRoute.segments.find(s => s.fromNode.id === currentLoc) || activeRoute.segments[0];
-    if (upcomingSeg) {
-      const typeLabels: Record<IncidentType, string> = {
-        road_block: 'Road Block / Closure',
-        heavy_traffic: 'Heavy Traffic Bottleneck',
-        accident: 'Vehicle Collision / Accident',
-        flood: 'Seasonal Flash Flood / Waterlogging',
-        hazardous_road: 'Hazardous Road Conditions / Debris',
-      };
-      handleApplyIncident(
-        upcomingSeg.edge.id,
-        type,
-        `${typeLabels[type] || 'Incident'} en-route near ${upcomingSeg.fromNode.name}`
-      );
-    }
-  };
-
+  // Clear All Incidents and restore baseline
   const handleClearIncidents = () => {
-    const cleanedEdges = graphData.edges.map(edge => ({
+    const cleanEdges = edges.map(edge => ({
       ...edge,
       incident: undefined,
-      trafficFactor: 1.0,
     }));
-    setGraphData(prev => ({ ...prev, edges: cleanedEdges }));
+    const cleanTrafficState = buildTrafficState(cleanEdges, trafficTimestamp, dayType);
     setDynamicReroute(null);
-    executeOptimization(appliedStartNode, appliedDestNode, appliedMode, appliedVehicle, cleanedEdges);
-  };
-
-  const handleEdgeSelectedForIncident = (edge: GraphEdge) => {
-    setSelectedEdgeForIncident(edge.id);
-    setIsIncidentModalOpen(true);
-  };
-
-  const activeIncidentsCount = graphData.edges.filter(e => e.incident).length;
-
-  const handleSelectRouteForMap = (nodeIds: string[]) => {
-    const evalRoute = evaluateRoutePath(
-      nodeIds,
-      graphData.vertices,
-      graphData.edges,
-      appliedMode,
-      appliedVehicle
+    setSimProgressIndex(0);
+    setIsSimulatingDrive(false);
+    setEdges(cleanEdges);
+    setTrafficState(cleanTrafficState);
+    executeOptimization(
+      vertices,
+      cleanEdges,
+      startNodeId,
+      destNodeId,
+      optimizationMode,
+      objectiveWeights,
+      trafficTimestamp,
+      dayType,
+      swarmSize,
+      maxIterations
     );
-    if (evalRoute.isFeasible) {
-      setActiveRoute(evalRoute);
-      setActiveTab('map');
-    }
   };
+
+  const startVertex = vertices.find(v => v.id === startNodeId) || null;
+  const destVertex = vertices.find(v => v.id === destNodeId) || null;
+  const activeIncidentEdges = edges.filter(e => e.incident !== undefined);
+
+  const activeRoute: EvaluatedRoute | null =
+    selectedAlgorithm === 'Dijkstra'
+      ? dijkstraResult
+      : selectedAlgorithm === 'A*'
+      ? aStarResult
+      : qpsoResult?.bestRoute || null;
+
+  const currentRouteNodes = activeRoute?.nodeIds || [];
+  const currentSimNodeId =
+    currentRouteNodes[Math.min(simProgressIndex, Math.max(0, currentRouteNodes.length - 1))] ||
+    startNodeId;
+  const currentSimVertex = vertices.find(v => v.id === currentSimNodeId) || startVertex;
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans antialiased pb-16">
-      {/* Floating Success Notification Toast */}
-      {notification && (
-        <div
-          role="status"
-          aria-live="polite"
-          className="fixed top-18 right-4 sm:right-8 z-50 bg-emerald-700 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 border border-emerald-500 animate-in fade-in slide-in-from-top-4 duration-300"
-        >
-          <CheckCircle2 className="w-5 h-5 text-emerald-200 shrink-0" />
-          <div className="text-sm font-black tracking-wide">
-            {notification.message}
-          </div>
-          <button
-            type="button"
-            onClick={() => setNotification(null)}
-            className="text-emerald-200 hover:text-white ml-2 p-1 rounded-md transition-colors cursor-pointer"
-            aria-label="Close notification"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans">
+      {/* Top Navigation Bar (Strict 3-Zone Contract, Pure Light Surface) */}
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-30">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
+          {/* Zone 1: Brand Wordmark */}
+          <a href="#top" className="text-base font-bold tracking-tight text-slate-900 whitespace-nowrap">
+            AP Traffic Route Optimizer
+          </a>
 
-      {/* Sleek, Clean App Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-lg md:text-xl font-black tracking-tight text-slate-900">
-              Quantum Route Optimizer
-            </h1>
-            <p className="text-xs text-slate-500 font-medium">
-              Intelligent Road Routing & Traffic Optimization
-            </p>
-          </div>
+          {/* Zone 2: Navigation Page Switcher */}
+          <nav className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs font-semibold">
+            <button
+              type="button"
+              onClick={() => setActiveView('optimizer')}
+              className={`px-3 py-1.5 rounded-md transition-colors cursor-pointer whitespace-nowrap ${
+                activeView === 'optimizer'
+                  ? 'bg-white text-slate-900 shadow-2xs font-bold'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Route Optimizer
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveView('vrp')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md transition-colors cursor-pointer whitespace-nowrap ${
+                activeView === 'vrp'
+                  ? 'bg-blue-600 text-white shadow-2xs font-bold'
+                  : 'text-slate-700 hover:text-slate-900 hover:bg-slate-200/60'
+              }`}
+            >
+              <Truck className="w-3.5 h-3.5" />
+              <span>Fleet VRP</span>
+            </button>
+          </nav>
 
+          {/* Zone 3: Primary Actions */}
           <div className="flex items-center gap-2">
-            {activeIncidentsCount > 0 && (
-              <button
-                onClick={handleClearIncidents}
-                id="btn-clear-incidents"
-                className="text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 cursor-pointer transition-colors"
-              >
-                Reset Incidents ({activeIncidentsCount})
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => setShowIncidentDrawer(!showIncidentDrawer)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer whitespace-nowrap ${
+                activeIncidentEdges.length > 0
+                  ? 'bg-red-50 text-red-700 border-red-200'
+                  : showIncidentDrawer
+                  ? 'bg-amber-50 text-amber-800 border-amber-200'
+                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              <AlertTriangle className="w-3.5 h-3.5" />
+              <span>
+                {activeIncidentEdges.length > 0
+                  ? `Incidents (${activeIncidentEdges.length})`
+                  : 'Incident Test'}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowAdvancedParams(!showAdvancedParams)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer whitespace-nowrap ${
+                showAdvancedParams
+                  ? 'bg-blue-50 text-blue-700 border-blue-200'
+                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              <Sliders className="w-3.5 h-3.5" />
+              <span>Swarm Settings</span>
+            </button>
           </div>
         </div>
       </header>
 
-      {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-5 space-y-5">
-        {/* Route Search & Control Card */}
-        <section className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
-          {/* Start & Destination Search Bar */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-center">
-            <div className="lg:col-span-5">
-              <LocationInput
-                id="input-start-location"
-                label="START LOCATION"
-                selectedVertex={startNode}
-                userQuery={startQuery}
-                nearbyDistanceKm={startDistanceKm}
-                graphVertices={graphData.vertices}
-                excludeVertexId={destNode.id}
-                onSelectNode={handleStartSelect}
-                onUseGps={handleUseCurrentLocation}
-              />
+      <main id="top" className="max-w-[1440px] w-full mx-auto px-4 sm:px-6 py-5 space-y-5 flex-1">
+        {activeView === 'vrp' ? (
+          <FleetVrpPage
+            vertices={vertices}
+            edges={edges}
+            objectiveWeights={objectiveWeights}
+            onNavigateToScalability={() => {
+              setActiveView('optimizer');
+              setTimeout(() => {
+                const el = document.getElementById('benchmarks');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }, 100);
+            }}
+          />
+        ) : (
+          <>
+            {/* Control Panel: Origin/Destination, Traffic State, and Multi-Objective Weights */}
+        <section
+          id="corridor-controls"
+          className="bg-white border border-slate-200 rounded-xl p-5 space-y-4 shadow-2xs"
+        >
+          {/* Row 1: Origin, Destination, Time State, Day Type */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+            {/* Origin */}
+            <div className="md:col-span-3">
+              <label className="block text-xs font-medium text-slate-600 mb-1">
+                Origin City
+              </label>
+              <select
+                value={startNodeId}
+                onChange={e => {
+                  const val = e.target.value;
+                  if (val === destNodeId) {
+                    const fallback = vertices.find(v => v.id !== val)?.id || destNodeId;
+                    setDestNodeId(fallback);
+                  }
+                  setDynamicReroute(null);
+                  setStartNodeId(val);
+                }}
+                className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:border-blue-500 cursor-pointer"
+              >
+                {vertices.map(v => (
+                  <option key={v.id} value={v.id}>
+                    {v.name} ({v.type})
+                  </option>
+                ))}
+              </select>
             </div>
 
-            <div className="lg:col-span-2 flex justify-center">
+            {/* Swap Button */}
+            <div className="md:col-span-1 flex justify-center">
               <button
                 type="button"
-                onClick={handleSwapStartAndDest}
-                id="btn-swap-locations"
-                title="Swap Start & Destination"
-                className="p-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-xl text-slate-700 font-bold transition-all cursor-pointer shadow-xs flex items-center justify-center gap-1.5 text-xs"
+                onClick={handleSwapLocations}
+                title="Swap Origin and Destination"
+                className="p-2 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 transition-colors cursor-pointer"
               >
-                <ArrowLeftRight className="w-4 h-4 text-blue-600" />
-                <span className="hidden sm:inline">Swap</span>
+                <ArrowUpDown className="w-4 h-4 rotate-90" />
               </button>
             </div>
 
-            <div className="lg:col-span-5">
-              <LocationInput
-                id="input-dest-location"
-                label="DESTINATION LOCATION"
-                selectedVertex={destNode}
-                userQuery={destQuery}
-                nearbyDistanceKm={destDistanceKm}
-                graphVertices={graphData.vertices}
-                excludeVertexId={startNode.id}
-                onSelectNode={handleDestSelect}
-              />
+            {/* Destination */}
+            <div className="md:col-span-3">
+              <label className="block text-xs font-medium text-slate-600 mb-1">
+                Destination City
+              </label>
+              <select
+                value={destNodeId}
+                onChange={e => {
+                  const val = e.target.value;
+                  if (val === startNodeId) {
+                    const fallback = vertices.find(v => v.id !== val)?.id || startNodeId;
+                    setStartNodeId(fallback);
+                  }
+                  setDynamicReroute(null);
+                  setDestNodeId(val);
+                }}
+                className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-lg px-3 py-2 text-xs font-medium focus:outline-none focus:border-blue-500 cursor-pointer"
+              >
+                {vertices.map(v => (
+                  <option key={v.id} value={v.id}>
+                    {v.name} ({v.type})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Time State */}
+            <div className="md:col-span-5">
+              <label className="block text-xs font-medium text-slate-600 mb-1">
+                Traffic Time State
+              </label>
+              <div className="flex items-center gap-1.5">
+                <select
+                  value={trafficTimestamp}
+                  onChange={e => setTrafficTimestamp(e.target.value)}
+                  className="flex-1 bg-slate-50 border border-slate-200 text-slate-900 rounded-lg px-2.5 py-2 text-xs font-medium focus:outline-none focus:border-blue-500 cursor-pointer"
+                >
+                  {TRAFFIC_TIME_PRESETS.map(p => (
+                    <option key={p.timestamp} value={p.timestamp}>
+                      {p.label}
+                    </option>
+                  ))}
+                </select>
+                <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs font-medium shrink-0">
+                  {(['weekday', 'weekend'] as DayType[]).map(d => (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => setDayType(d)}
+                      className={`px-2 py-1.5 rounded-md capitalize transition-colors cursor-pointer whitespace-nowrap ${
+                        dayType === d
+                          ? 'bg-white text-slate-900 shadow-2xs font-semibold'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      {d}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Vehicle & Route Optimization Section */}
-          <div className="space-y-4 pt-3 border-t border-slate-100">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-200 pb-2">
+          {/* Row 2: Interactive Weight Scroll Bars for Time, Congestion, and Distance */}
+          <div className="pt-3 border-t border-slate-100">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-3.5 rounded-lg border border-slate-200/80 tabular-nums">
               <div>
-                <h2 className="text-sm font-black uppercase text-slate-900 tracking-wide flex items-center gap-2">
-                  <span className="inline-block w-2.5 h-2.5 rounded-xs bg-blue-600"></span>
-                  Vehicle & Route Optimization
-                </h2>
-                <p className="text-[11px] text-slate-500 font-medium">
-                  Vehicle Filters: Road Suitability • Dimensional / Access Restrictions • Dynamic Congestion • Safety Constraints → Feasible Subgraph → QPSO
-                </p>
+                <div className="flex justify-between text-xs mb-1.5">
+                  <span className="font-medium text-slate-700">Time Weight (w<sub>T</sub>)</span>
+                  <span className="font-semibold text-blue-700">{objectiveWeights.wT.toFixed(2)}</span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  value={objectiveWeights.wT}
+                  onChange={e => handleWeightChange('wT', Number(e.target.value))}
+                  className="w-full accent-blue-600 cursor-pointer h-1.5"
+                />
               </div>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 w-fit">
-                Vehicle Constraints → QPSO
+
+              <div>
+                <div className="flex justify-between text-xs mb-1.5">
+                  <span className="font-medium text-slate-700">Congestion Weight (w<sub>C</sub>)</span>
+                  <span className="font-semibold text-amber-700">{objectiveWeights.wC.toFixed(2)}</span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  value={objectiveWeights.wC}
+                  onChange={e => handleWeightChange('wC', Number(e.target.value))}
+                  className="w-full accent-amber-600 cursor-pointer h-1.5"
+                />
+              </div>
+
+              <div>
+                <div className="flex justify-between text-xs mb-1.5">
+                  <span className="font-medium text-slate-700">Distance Weight (w<sub>D</sub>)</span>
+                  <span className="font-semibold text-emerald-700">{objectiveWeights.wD.toFixed(2)}</span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  value={objectiveWeights.wD}
+                  onChange={e => handleWeightChange('wD', Number(e.target.value))}
+                  className="w-full accent-emerald-600 cursor-pointer h-1.5"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Action Row: Prominent Separated CTA Button + Algorithm Badges */}
+          <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-xs text-slate-600">
+              <span className="font-semibold text-slate-700">Algorithm:</span>
+              <span className="bg-blue-50 text-blue-700 px-2.5 py-1 rounded-md border border-blue-200 font-bold">
+                Adaptive QPSO (Quantum-Inspired)
               </span>
+              <span className="text-slate-300">|</span>
+              <span className="text-slate-500">{swarmSize} Particles · {maxIterations} Iterations</span>
             </div>
 
-            {/* 1. Vehicle Selection - Full Width High Visibility */}
-            <div className="space-y-1.5">
-              <span className="text-xs font-black uppercase text-slate-700 tracking-wide">Select Vehicle</span>
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 bg-slate-100 p-2.5 rounded-xl border border-slate-200">
-                {(
-                  [
-                    { type: 'car', label: 'Car', icon: Car, suitability: 'All paved roads & expressways' },
-                    { type: 'bike', label: 'Bike', icon: Bike, suitability: 'Narrow roads & arterial links' },
-                    { type: 'bus', label: 'Bus', icon: Bus, suitability: 'Major transit corridors & NH' },
-                    { type: 'truck', label: 'Heavy Vehicle', icon: Truck, suitability: 'Heavy freight & bypass routes' },
-                    { type: 'emergency', label: 'Emergency', icon: ShieldAlert, suitability: 'Priority signalized corridors' },
-                  ] as const
-                ).map(v => {
-                  const Icon = v.icon;
-                  const isSelected = selectedVehicle === v.type;
-                  return (
-                    <button
-                      key={v.type}
-                      type="button"
-                      onClick={() => handleVehicleSelect(v.type)}
-                      className={`py-3 px-3 text-center rounded-xl text-xs font-black transition-all cursor-pointer flex flex-col items-center justify-center gap-1.5 shadow-2xs ${
-                        isSelected
-                          ? 'bg-blue-100 text-blue-950 border-2 border-blue-600 shadow-md scale-[1.02]'
-                          : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900 bg-white/80 border border-slate-200'
-                      }`}
-                    >
-                      <Icon className={`w-6 h-6 stroke-[2.2] ${isSelected ? 'text-blue-700' : ''}`} />
-                      <span className="text-xs font-black">{v.label}</span>
-                      <span className={`text-[9px] text-center line-clamp-1 ${isSelected ? 'text-blue-900 font-semibold' : 'text-slate-500'}`}>
-                        {v.suitability}
-                      </span>
-                    </button>
-                  );
-                })}
+            <button
+              type="button"
+              disabled={isOptimizing}
+              onClick={async () => {
+                setIsOptimizing(true);
+                await new Promise(r => setTimeout(r, 40));
+                executeOptimization(
+                  vertices,
+                  edges,
+                  startNodeId,
+                  destNodeId,
+                  optimizationMode,
+                  objectiveWeights,
+                  trafficTimestamp,
+                  dayType,
+                  swarmSize,
+                  maxIterations
+                );
+                setIsOptimizing(false);
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-2xs hover:shadow-md flex items-center justify-center gap-2 text-xs uppercase tracking-wider cursor-pointer disabled:opacity-60 whitespace-nowrap"
+            >
+              {isOptimizing ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin shrink-0" />
+                  <span>CALCULATING OPTIMAL ROUTE...</span>
+                </>
+              ) : (
+                <>
+                  <Play className="w-4 h-4 fill-current shrink-0" />
+                  <span>OPTIMIZE ROUTE</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Collapsible QPSO Hyperparameters */}
+          {showAdvancedParams && (
+            <div className="pt-3 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-3.5 rounded-lg border border-slate-200 tabular-nums">
+              <div>
+                <div className="flex justify-between text-xs font-medium mb-1">
+                  <span className="text-slate-600">Quantum Swarm Population (M)</span>
+                  <span className="font-semibold text-blue-700">{swarmSize} Particles</span>
+                </div>
+                <input
+                  type="range"
+                  min={8}
+                  max={40}
+                  step={2}
+                  value={swarmSize}
+                  onChange={e => setSwarmSize(Number(e.target.value))}
+                  className="w-full accent-blue-600 cursor-pointer"
+                />
+              </div>
+              <div>
+                <div className="flex justify-between text-xs font-medium mb-1">
+                  <span className="text-slate-600">Max Iterations (T<sub>max</sub>)</span>
+                  <span className="font-semibold text-blue-700">{maxIterations} Generations</span>
+                </div>
+                <input
+                  type="range"
+                  min={15}
+                  max={80}
+                  step={5}
+                  value={maxIterations}
+                  onChange={e => setMaxIterations(Number(e.target.value))}
+                  className="w-full accent-blue-600 cursor-pointer"
+                />
+              </div>
+              <div className="flex items-center text-xs text-slate-600">
+                Contraction–Expansion β decays linearly from 1.00 to 0.50 across {maxIterations} iterations.
               </div>
             </div>
+          )}
 
-            {/* 2. Route Goal Section (Positioned Directly Below Vehicle Type) */}
-            <div className="space-y-1.5">
-              <span className="text-xs font-black uppercase text-slate-700 tracking-wide">Route Goal</span>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 bg-slate-100 p-2.5 rounded-xl border border-slate-200">
-                {(
-                  [
-                    { mode: 'fastest', label: 'Fastest', icon: Zap, desc: 'Prioritize lowest travel time (β=0.60)' },
-                    { mode: 'balanced', label: 'Balanced', icon: Gauge, desc: 'Balanced time, distance & risk (β=0.30, δ=0.25)' },
-                    { mode: 'safer', label: 'Safer', icon: ShieldCheck, desc: 'Strictly avoid blackspots & risk (δ=0.55)' },
-                  ] as const
-                ).map(m => {
-                  const Icon = m.icon;
-                  const isSelected = optimizationMode === m.mode;
-                  return (
-                    <button
-                      key={m.mode}
-                      type="button"
-                      onClick={() => handleModeSelect(m.mode)}
-                      className={`py-3 px-3 text-center text-xs sm:text-sm font-black rounded-xl cursor-pointer transition-all flex flex-col items-center justify-center gap-1 shadow-2xs ${
-                        isSelected
-                          ? 'bg-blue-100 text-blue-950 border-2 border-blue-600 shadow-md scale-[1.02]'
-                          : 'text-slate-700 hover:bg-slate-200 hover:text-slate-900 bg-white/80 border border-slate-200'
-                      }`}
-                    >
-                      <div className="flex items-center gap-1.5">
-                        <Icon className={`w-5 h-5 stroke-[2.2] ${isSelected ? 'text-blue-700' : ''}`} />
-                        <span>{m.label}</span>
-                      </div>
-                      <span className={`text-[10px] ${isSelected ? 'text-blue-800 font-bold' : 'text-slate-500 font-medium'}`}>
-                        {m.desc}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* 3. Calculate Route Action Button with Rotating Circle Spinner */}
-            <div className="pt-1 space-y-2">
-              {hasPendingChanges && (
-                <div className="flex flex-wrap items-center justify-between text-xs text-amber-900 bg-amber-50 border border-amber-300 px-3.5 py-2 rounded-xl font-bold shadow-2xs">
-                  <span className="flex items-center gap-1.5">
-                    <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
-                    Pending inputs modified (Vehicle, Goal, or Location)
-                  </span>
-                  <span className="text-[11px] font-extrabold text-blue-700">
-                    Click Calculate Route below to apply
+          {/* Collapsible Isolated Incident Drawer */}
+          {showIncidentDrawer && (
+            <div className="pt-3 border-t border-amber-200 bg-amber-50/50 p-4 rounded-lg border space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <ShieldAlert className="w-4 h-4 text-amber-600" />
+                  <span className="text-xs font-semibold text-slate-900">
+                    Dynamic Incident & Rerouting Test
                   </span>
                 </div>
-              )}
 
+                {currentRouteNodes.length > 1 && (
+                  <div className="flex items-center gap-2 bg-white px-2.5 py-1 rounded-md border border-amber-200 text-xs tabular-nums">
+                    <Car className="w-3.5 h-3.5 text-blue-600" />
+                    <span className="text-slate-700">
+                      Position: <strong className="text-blue-700">{currentSimVertex?.name}</strong> ({simProgressIndex + 1}/{currentRouteNodes.length})
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (simProgressIndex >= currentRouteNodes.length - 1) setSimProgressIndex(0);
+                        setIsSimulatingDrive(!isSimulatingDrive);
+                      }}
+                      className={`px-2 py-0.5 rounded font-medium text-[11px] cursor-pointer ${
+                        isSimulatingDrive
+                          ? 'bg-amber-600 text-white'
+                          : 'bg-blue-600 text-white hover:bg-blue-700'
+                      }`}
+                    >
+                      {isSimulatingDrive ? 'Pause' : 'Step Forward'}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">
+                    Target Road Segment
+                  </label>
+                  <select
+                    value={selectedIncidentEdgeId}
+                    onChange={e => setSelectedIncidentEdgeId(e.target.value)}
+                    className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-800 focus:outline-none"
+                  >
+                    {qpsoResult?.bestRoute && qpsoResult.bestRoute.segments.length > 0 && (
+                      <optgroup label="Active Optimal Route Segments">
+                        {qpsoResult.bestRoute.segments.map((seg, idx) => (
+                          <option key={seg.edge.id} value={seg.edge.id}>
+                            Step {idx + 1}: {seg.fromNode.name} → {seg.toNode.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">
+                    Incident Type
+                  </label>
+                  <select
+                    value={selectedIncidentType}
+                    onChange={e => setSelectedIncidentType(e.target.value as IncidentType)}
+                    className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs font-medium text-slate-800 focus:outline-none"
+                  >
+                    <option value="accident">Traffic Accident</option>
+                    <option value="road_block">Full Road Blockade</option>
+                    <option value="heavy_traffic">Severe Bottleneck</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">
+                    Severity
+                  </label>
+                  <div className="grid grid-cols-3 gap-1 bg-white p-0.5 rounded-lg border border-slate-200">
+                    {(['moderate', 'high', 'critical'] as const).map(sev => (
+                      <button
+                        key={sev}
+                        type="button"
+                        onClick={() => setIncidentSeverity(sev)}
+                        className={`py-1 rounded text-[11px] font-medium capitalize transition-colors cursor-pointer ${
+                          incidentSeverity === sev
+                            ? 'bg-red-600 text-white font-semibold'
+                            : 'text-slate-600 hover:bg-slate-50'
+                        }`}
+                      >
+                        {sev}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleInjectIncident()}
+                    className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-1.5 px-3 rounded-lg text-xs transition-colors cursor-pointer whitespace-nowrap"
+                  >
+                    Inject & Reroute
+                  </button>
+                  {activeIncidentEdges.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleClearIncidents}
+                      className="bg-white hover:bg-slate-50 text-slate-700 font-medium py-1.5 px-2.5 rounded-lg text-xs border border-slate-200 transition-colors cursor-pointer"
+                      title="Clear Incidents"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* Dynamic Rerouting Banner (Clean Light Emerald Surface) */}
+        {dynamicReroute && dynamicReroute.isActive && (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-2.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+              <div className="text-xs text-slate-800 space-y-1">
+                <div className="font-semibold text-emerald-900">
+                  Dynamic Reroute Active — Rerouted from {dynamicReroute.currentLocationNodeId}
+                </div>
+                <div>
+                  Updated Path: <span className="font-medium">{dynamicReroute.afterRoute.segments.map(s => s.fromNode.name).concat(dynamicReroute.afterRoute.segments.slice(-1)[0]?.toNode.name || '').join(' → ')}</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 shrink-0 text-xs tabular-nums">
+              <span className="font-semibold text-emerald-800">
+                Δ Distance: {dynamicReroute.additionalDistanceKm >= 0 ? '+' : ''}{dynamicReroute.additionalDistanceKm} km
+              </span>
               <button
                 type="button"
-                onClick={handleOptimizeClick}
-                disabled={isCalculating}
-                id="btn-optimize-route"
-                className={`w-full py-4 px-6 rounded-xl text-white font-black text-sm shadow-md text-center transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                  isCalculating
-                    ? 'bg-blue-500 cursor-not-allowed opacity-90'
-                    : hasPendingChanges
-                    ? 'bg-blue-600 hover:bg-blue-700 ring-4 ring-blue-200 ring-offset-1 hover:scale-[1.005] active:scale-[0.99]'
-                    : 'bg-blue-600 hover:bg-blue-700 hover:scale-[1.005] active:scale-[0.99]'
-                }`}
+                onClick={handleClearIncidents}
+                className="px-2.5 py-1 bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-md font-medium cursor-pointer"
               >
-                {isCalculating ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    <span>Processing Route Calculation...</span>
-                  </>
-                ) : (
-                  <>
-                    <Zap className="w-5 h-5" />
-                    <span>Calculate Route {hasPendingChanges ? '• Apply Changes' : ''}</span>
-                  </>
-                )}
+                Reset
               </button>
             </div>
           </div>
-        </section>
-
-        {/* Dynamic Reroute Alert Banner (if incident active) */}
-        {dynamicReroute && (
-          <div id="dynamic-reroute-breakdown">
-            <DynamicReroutingPanel
-              state={dynamicReroute}
-              vertices={graphData.vertices}
-              onResetReroute={handleClearIncidents}
-            />
-          </div>
         )}
 
-        {/* Large View Tabs with Icons */}
-        <div className="flex flex-wrap items-center gap-2.5 border-b border-slate-200 pb-3">
-          <button
-            type="button"
-            onClick={() => setActiveTab('map')}
-            className={`px-5 py-3 rounded-xl text-sm font-black transition-all cursor-pointer flex items-center gap-2 shadow-2xs ${
-              activeTab === 'map'
-                ? 'bg-blue-600 text-white shadow-md scale-[1.02]'
-                : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 hover:text-slate-900'
-            }`}
-          >
-            <Map className="w-5 h-5 stroke-[2.2]" />
-            <span>Map & Route</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('graph')}
-            className={`px-5 py-3 rounded-xl text-sm font-black transition-all cursor-pointer flex items-center gap-2 shadow-2xs ${
-              activeTab === 'graph'
-                ? 'bg-blue-600 text-white shadow-md scale-[1.02]'
-                : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 hover:text-slate-900'
-            }`}
-          >
-            <Network className="w-5 h-5 stroke-[2.2]" />
-            <span>Road Graph</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('benchmarks')}
-            className={`px-5 py-3 rounded-xl text-sm font-black transition-all cursor-pointer flex items-center gap-2 shadow-2xs ${
-              activeTab === 'benchmarks'
-                ? 'bg-blue-600 text-white shadow-md scale-[1.02]'
-                : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100 hover:text-slate-900'
-            }`}
-          >
-            <BarChart3 className="w-5 h-5 stroke-[2.2]" />
-            <span>QPSO Benchmarks &amp; Formulation</span>
-          </button>
-        </div>
-
-        {/* Tab 1: Live Map & Summary */}
-        {activeTab === 'map' && (
-          <div className="space-y-4">
-            {/* Real-time AP Road Network Map */}
-            <div className="w-full">
-              <MapComponent
-                vertices={graphData.vertices}
-                edges={graphData.edges}
-                optimalRoute={activeRoute}
-                shortestRoute={shortestRoute}
-                startNode={appliedStartNode}
-                destNode={appliedDestNode}
-                dynamicReroute={dynamicReroute}
-                vehicleType={appliedVehicle}
-                optimizationMode={appliedMode}
-                simCoords={simState.currentCoords}
-              />
+        {/* Map & Topological Graph Section */}
+        <section id="network-workspace" className="space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-white px-4 py-2.5 rounded-xl border border-slate-200">
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Map vs Graph Tab */}
+              <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-lg border border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setMapViewTab('map')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer whitespace-nowrap ${
+                    mapViewTab === 'map'
+                      ? 'bg-white text-slate-900 shadow-2xs font-semibold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <MapPin className="w-3.5 h-3.5 text-blue-600" />
+                  <span>Geographic Map</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMapViewTab('graph')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer whitespace-nowrap ${
+                    mapViewTab === 'graph'
+                      ? 'bg-white text-slate-900 shadow-2xs font-semibold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Network className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Weighted Graph</span>
+                </button>
+              </div>
             </div>
 
-            {/* Live Interactive Journey Controller */}
-            <JourneyController
-              simState={simState}
-              activeRoute={activeRoute}
-              startNode={appliedStartNode}
-              destNode={appliedDestNode}
-              vehicleType={appliedVehicle}
-              onStart={handleStartJourney}
-              onPause={handlePauseJourney}
-              onResume={handleResumeJourney}
-              onReset={handleResetJourney}
-              onSpeedChange={handleChangeSimSpeed}
-              onTriggerIncident={handleTriggerEnRouteIncident}
-            />
-
-            <RouteSummary
-              route={activeRoute}
-              shortestRoute={shortestRoute}
-              vehicle={appliedVehicle}
-              mode={appliedMode}
-              currentTimeString={currentTimeString}
-              isSimulatedTraffic={true}
-              onViewDetails={() => setIsDetailsModalOpen(true)}
-            />
+            {activeRoute && (
+              <div className="flex flex-wrap items-center gap-3 text-xs text-slate-600 tabular-nums">
+                <span>
+                  Algorithm: <strong className="text-blue-700">{selectedAlgorithm}</strong>
+                </span>
+                <span aria-hidden="true">·</span>
+                <span>
+                  Time: <strong className="text-slate-900">{formatDurationHuman(activeRoute.totalTimeMin)}</strong>
+                </span>
+                <span aria-hidden="true">·</span>
+                <span>
+                  Distance: <strong className="text-slate-900">{activeRoute.totalDistanceKm.toFixed(1)} km</strong>
+                </span>
+                <span aria-hidden="true">·</span>
+                <span>
+                  Congestion: <strong className="text-amber-700">{activeRoute.totalCongestion.toFixed(2)}</strong>
+                </span>
+                <span aria-hidden="true">·</span>
+                <span>
+                  Objective F(R, t): <strong className="text-blue-700">{activeRoute.fitness.toFixed(4)}</strong>
+                </span>
+              </div>
+            )}
           </div>
-        )}
 
-        {/* Tab 2: Graph Visualizer */}
-        {activeTab === 'graph' && (
-          <div className="space-y-4">
+          {mapViewTab === 'map' ? (
+            <div className="relative">
+              <MapComponent
+                vertices={vertices}
+                edges={edges}
+                optimalRoute={activeRoute}
+                shortestRoute={shortestPathRoute}
+                startNode={startVertex}
+                destNode={destVertex}
+                dynamicReroute={dynamicReroute}
+                vehicleType={vehicleType}
+                optimizationMode={optimizationMode}
+                simCoords={currentSimVertex?.coords || null}
+                onEdgeClick={edge => {
+                  setSelectedIncidentEdgeId(edge.id);
+                  handleInjectIncident(edge.id);
+                }}
+                onNodeClick={node => {
+                  setSelectedNodeOnMap(node);
+                }}
+              />
+
+              {selectedNodeOnMap && (
+                <div className="mt-2 bg-white border border-slate-200 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 text-xs">
+                    <MapPin className="w-4 h-4 text-blue-600" />
+                    <span className="font-semibold text-slate-900">{selectedNodeOnMap.name}</span>
+                    <span className="text-slate-500">({selectedNodeOnMap.type})</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={selectedNodeOnMap.id === startNodeId}
+                      onClick={() => {
+                        if (selectedNodeOnMap.id === destNodeId) setDestNodeId(startNodeId);
+                        setStartNodeId(selectedNodeOnMap.id);
+                        setDynamicReroute(null);
+                        setSelectedNodeOnMap(null);
+                      }}
+                      className="px-2.5 py-1 rounded-md text-xs font-medium bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white cursor-pointer"
+                    >
+                      Set as Origin
+                    </button>
+                    <button
+                      type="button"
+                      disabled={selectedNodeOnMap.id === destNodeId}
+                      onClick={() => {
+                        if (selectedNodeOnMap.id === startNodeId) setStartNodeId(destNodeId);
+                        setDestNodeId(selectedNodeOnMap.id);
+                        setDynamicReroute(null);
+                        setSelectedNodeOnMap(null);
+                      }}
+                      className="px-2.5 py-1 rounded-md text-xs font-medium bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white cursor-pointer"
+                    >
+                      Set as Destination
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedNodeOnMap(null)}
+                      className="px-2 py-1 rounded-md text-xs text-slate-500 hover:bg-slate-100 cursor-pointer"
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
             <GraphVisualizer
-              vertices={graphData.vertices}
-              edges={graphData.edges}
+              vertices={vertices}
+              edges={edges}
               optimalRoute={activeRoute}
+              startVertex={startVertex || undefined}
+              destVertex={destVertex || undefined}
+              optimizationMode={optimizationMode}
+              vehicleType={vehicleType}
               dynamicReroute={dynamicReroute}
-              startVertex={appliedStartNode}
-              destVertex={appliedDestNode}
-              optimizationMode={appliedMode}
-              vehicleType={appliedVehicle}
-              currentLocationNodeId={simState.currentNodeId}
-              onSelectNode={node => handleStartSelect(node)}
+              trafficState={trafficState ?? undefined}
+              objectiveWeights={objectiveWeights}
+              currentLocationNodeId={currentSimNodeId}
+              onSelectEdge={edge => {
+                setSelectedIncidentEdgeId(edge.id);
+              }}
+              onInjectIncidentOnEdge={edgeId => {
+                setSelectedIncidentEdgeId(edgeId);
+                handleInjectIncident(edgeId);
+              }}
+              onClearIncidentOnEdge={() => {
+                handleClearIncidents();
+              }}
             />
-          </div>
-        )}
+          )}
+        </section>
 
-        {/* Tab 3: Systematic Benchmark */}
-        {activeTab === 'benchmarks' && (
-          <div className="space-y-4">
-            <BenchmarkSection
-              results={benchmarkResults}
-              onSelectRouteForMap={handleSelectRouteForMap}
-            />
-            <QpsoExplorationView
-              mode={appliedMode}
-              route={activeRoute}
-              qpsoResult={qpsoResult}
-              vertices={graphData.vertices}
-              edges={graphData.edges}
-            />
-          </div>
+        {/* Dynamic Rerouting View: Side-by-Side Before vs After Route Comparison & Calculated Impact Metrics */}
+        <DynamicReroutingPanel
+          state={dynamicReroute}
+          initialRoute={initialBaselineRoute}
+          activeRoute={activeRoute}
+          vertices={vertices}
+          edges={edges}
+          selectedEdgeId={selectedIncidentEdgeId}
+          onSelectEdgeId={setSelectedIncidentEdgeId}
+          selectedIncidentType={selectedIncidentType}
+          onSelectIncidentType={setSelectedIncidentType}
+          incidentSeverity={incidentSeverity}
+          onSelectIncidentSeverity={setIncidentSeverity}
+          onInjectIncident={handleInjectIncident}
+          onResetReroute={handleClearIncidents}
+          startVertex={startVertex}
+          destVertex={destVertex}
+          selectedAlgorithm={selectedAlgorithm}
+          objectiveWeights={objectiveWeights}
+          trafficTimestamp={trafficTimestamp}
+          dayType={dayType}
+          optimizationMode={optimizationMode}
+        />
+
+        {/* Route Summary Card */}
+        <RouteSummary
+          route={activeRoute}
+          mode={optimizationMode}
+          executionTimeMs={qpsoResult?.executionTimeMs}
+          trafficState={trafficState ?? undefined}
+          objectiveWeights={objectiveWeights}
+        />
+
+        {/* Multi-Algorithm Benchmark Comparison */}
+        <section id="benchmarks">
+          <BenchmarkSection
+            benchmarks={benchmarks}
+            convergenceHistory={qpsoResult?.convergenceHistory}
+            activeRoutePath={activeRoute?.nodeIds}
+            objectiveWeights={objectiveWeights}
+            trafficState={trafficState ?? undefined}
+          />
+        </section>
+          </>
         )}
       </main>
-
-      {/* Incident Modal */}
-      <IncidentModal
-        isOpen={isIncidentModalOpen}
-        onClose={() => setIsIncidentModalOpen(false)}
-        edges={graphData.edges}
-        currentRoute={activeRoute}
-        selectedEdgeId={selectedEdgeForIncident}
-        onApplyIncident={handleApplyIncident}
-        onClearIncidents={handleClearIncidents}
-        activeIncidentsCount={activeIncidentsCount}
-      />
-
-      {/* Turn-by-Turn Route Details Modal */}
-      <RouteDetailsModal
-        isOpen={isDetailsModalOpen}
-        onClose={() => setIsDetailsModalOpen(false)}
-        route={activeRoute}
-      />
     </div>
   );
 }
+
+export default App;

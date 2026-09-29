@@ -145,6 +145,39 @@ export const REGIONAL_NODES: GraphVertex[] = [
   { id: 'ORVAKAL', name: 'Orvakal', type: 'village', coords: { lat: 15.6830, lng: 78.2170 }, state: 'Andhra Pradesh', tier: 'village' },
   { id: 'TIRUMALA', name: 'Tirumala', type: 'village', coords: { lat: 13.6830, lng: 79.3500 }, state: 'Andhra Pradesh', tier: 'village' },
   { id: 'KANIPAKAM', name: 'Kanipakam', type: 'village', coords: { lat: 13.2660, lng: 79.0330 }, state: 'Andhra Pradesh', tier: 'village' },
+  // Intermediate Corridor Towns for Realistic Local Routing & Incident Bypass
+  { id: 'TADEPALLI', name: 'Tadepalli', type: 'town', coords: { lat: 16.4830, lng: 80.6120 }, state: 'Andhra Pradesh', tier: 'town' },
+  { id: 'GOLLAPUDI', name: 'Gollapudi', type: 'town', coords: { lat: 16.5450, lng: 80.5890 }, state: 'Andhra Pradesh', tier: 'town' },
+  { id: 'AGIRIPALLI', name: 'Agiripalli', type: 'town', coords: { lat: 16.6710, lng: 80.7930 }, state: 'Andhra Pradesh', tier: 'town' },
+  { id: 'UNGUTURU', name: 'Unguturu', type: 'town', coords: { lat: 16.8050, lng: 81.4120 }, state: 'Andhra Pradesh', tier: 'town' },
+  { id: 'BHIMADOLE', name: 'Bhimadole', type: 'town', coords: { lat: 16.8140, lng: 81.2670 }, state: 'Andhra Pradesh', tier: 'town' },
+  { id: 'KOYYALAGUDEM', name: 'Koyyalagudem', type: 'town', coords: { lat: 17.1150, lng: 81.4250 }, state: 'Andhra Pradesh', tier: 'town' },
+  { id: 'AKIVIDU', name: 'Akividu', type: 'town', coords: { lat: 16.5830, lng: 81.3830 }, state: 'Andhra Pradesh', tier: 'town' },
+  { id: 'KAIKALURU', name: 'Kaikaluru', type: 'town', coords: { lat: 16.5500, lng: 81.2000 }, state: 'Andhra Pradesh', tier: 'town' },
+  { id: 'NIDADAVOLE', name: 'Nidadavole', type: 'town', coords: { lat: 16.9100, lng: 81.6700 }, state: 'Andhra Pradesh', tier: 'town' },
+  { id: 'RAJANAGARAM', name: 'Rajanagaram', type: 'town', coords: { lat: 17.0750, lng: 81.9000 }, state: 'Andhra Pradesh', tier: 'town' },
+  { id: 'JAGGAMPETA', name: 'Jaggampeta', type: 'town', coords: { lat: 17.1720, lng: 82.0620 }, state: 'Andhra Pradesh', tier: 'town' },
+  { id: 'YELESWARAM', name: 'Yeleswaram', type: 'town', coords: { lat: 17.2850, lng: 82.1050 }, state: 'Andhra Pradesh', tier: 'town' },
+  { id: 'MANDAPETA', name: 'Mandapeta', type: 'town', coords: { lat: 16.8700, lng: 81.9300 }, state: 'Andhra Pradesh', tier: 'town' },
+  { id: 'RAMACHANDRAPURAM', name: 'Ramachandrapuram', type: 'town', coords: { lat: 16.8360, lng: 82.0300 }, state: 'Andhra Pradesh', tier: 'town' },
+  { id: 'PRATHIPADU', name: 'Prathipadu', type: 'town', coords: { lat: 17.2300, lng: 82.1900 }, state: 'Andhra Pradesh', tier: 'town' },
+  { id: 'PITHAPURAM', name: 'Pithapuram', type: 'town', coords: { lat: 17.1160, lng: 82.2530 }, state: 'Andhra Pradesh', tier: 'town' },
+  { id: 'KATHIPUDI', name: 'Kathipudi', type: 'junction', coords: { lat: 17.2450, lng: 82.3350 }, state: 'Andhra Pradesh', tier: 'junction' },
+  { id: 'ROWTHULAPUDI', name: 'Rowthulapudi', type: 'town', coords: { lat: 17.3450, lng: 82.3850 }, state: 'Andhra Pradesh', tier: 'town' },
+  { id: 'NAKKAPALLI', name: 'Nakkapalli', type: 'town', coords: { lat: 17.4120, lng: 82.7250 }, state: 'Andhra Pradesh', tier: 'town' },
+  { id: 'KOTAURATLA', name: 'Kotauratla', type: 'town', coords: { lat: 17.5400, lng: 82.6900 }, state: 'Andhra Pradesh', tier: 'town' },
+  { id: 'CHODAVARAM', name: 'Chodavaram', type: 'town', coords: { lat: 17.8300, lng: 82.9400 }, state: 'Andhra Pradesh', tier: 'town' },
+  { id: 'GAJUWAKA', name: 'Gajuwaka', type: 'town', coords: { lat: 17.6850, lng: 83.1450 }, state: 'Andhra Pradesh', tier: 'town' },
+  { id: 'SIMHACHALAM', name: 'Simhachalam', type: 'town', coords: { lat: 17.7660, lng: 83.2250 }, state: 'Andhra Pradesh', tier: 'town' },
+  { id: 'PENDURTHI', name: 'Pendurthi', type: 'town', coords: { lat: 17.8180, lng: 83.1650 }, state: 'Andhra Pradesh', tier: 'town' },
+  { id: 'TAGARAPUVALASA', name: 'Tagarapuvalasa', type: 'town', coords: { lat: 17.9310, lng: 83.4250 }, state: 'Andhra Pradesh', tier: 'town' },
+  { id: 'MARTUR', name: 'Martur', type: 'town', coords: { lat: 15.9780, lng: 80.0950 }, state: 'Andhra Pradesh', tier: 'town' },
+  { id: 'ADDANKI', name: 'Addanki', type: 'town', coords: { lat: 15.8110, lng: 79.9730 }, state: 'Andhra Pradesh', tier: 'town' },
+  { id: 'MEDARAMETLA', name: 'Medarametla', type: 'junction', coords: { lat: 15.7250, lng: 80.0320 }, state: 'Andhra Pradesh', tier: 'junction' },
+  { id: 'KOVUR_NLR', name: 'Kovur (Nellore)', type: 'town', coords: { lat: 14.5020, lng: 79.9920 }, state: 'Andhra Pradesh', tier: 'town' },
+  { id: 'RENIGUNTA', name: 'Renigunta', type: 'town', coords: { lat: 13.6500, lng: 79.5100 }, state: 'Andhra Pradesh', tier: 'town' },
+  { id: 'NAIDUPETA', name: 'Naidupeta', type: 'town', coords: { lat: 13.9060, lng: 79.8950 }, state: 'Andhra Pradesh', tier: 'town' },
+  { id: 'SULLURUPETA', name: 'Sullurupeta', type: 'town', coords: { lat: 13.7020, lng: 80.0180 }, state: 'Andhra Pradesh', tier: 'town' },
 ];
 
 const ALL_VEHICLES: VehicleType[] = ['car', 'bike', 'bus', 'truck', 'emergency'];
@@ -188,8 +221,7 @@ const RAW_EDGES: EdgeDef[] = [
   // ==========================================
   // CAPITAL & CENTRAL AP CORRIDORS (NH16, NH65, Seed Capital Expressways, Delta Roads)
   // ==========================================
-  { id: 'e_vja_man', from: 'VIJAYAWADA', to: 'MANGALAGIRI', roadName: 'NH16 Krishna River Bridge & AIIMS Access', roadType: 'national_highway', distanceKm: 12.4, baseSpeedKmH: 60, trafficFactor: 1.45, riskScore: 4.5, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_vja_man_elev', from: 'VIJAYAWADA', to: 'MANGALAGIRI', roadName: 'NH16 Kanaka Durga Elevated Flyover Corridor', roadType: 'expressway', distanceKm: 13.8, baseSpeedKmH: 90, trafficFactor: 1.12, riskScore: 1.8, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_vja_man', from: 'VIJAYAWADA', to: 'MANGALAGIRI', roadName: 'NH16 Kanaka Durga Elevated Flyover & AIIMS Corridor', roadType: 'expressway', distanceKm: 12.8, baseSpeedKmH: 80, trafficFactor: 1.28, riskScore: 2.5, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
   { id: 'e_man_kaza', from: 'MANGALAGIRI', to: 'KAZA', roadName: 'NH16 Kaza Tollway (ANU Stretch)', roadType: 'expressway', distanceKm: 8.5, baseSpeedKmH: 85, trafficFactor: 1.15, riskScore: 2.0, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
   { id: 'e_kaza_kakani', from: 'KAZA', to: 'PEDAKAKANI', roadName: 'NH16 Pedakakani Bypass', roadType: 'expressway', distanceKm: 6.2, baseSpeedKmH: 85, trafficFactor: 1.20, riskScore: 2.2, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
   { id: 'e_kakani_gun', from: 'PEDAKAKANI', to: 'GUNTUR', roadName: 'Guntur North Inner Ring Road', roadType: 'national_highway', distanceKm: 7.8, baseSpeedKmH: 65, trafficFactor: 1.35, riskScore: 3.2, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
@@ -208,12 +240,22 @@ const RAW_EDGES: EdgeDef[] = [
   { id: 'e_ibra_ama', from: 'IBRAHIMPATNAM', to: 'AMARAVATI', roadName: 'Krishna River Bridge Connector', roadType: 'state_highway', distanceKm: 9.8, baseSpeedKmH: 60, trafficFactor: 1.10, riskScore: 1.6, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
 
   // Gannavaram & Delta Corridors
-  { id: 'e_vja_gan', from: 'VIJAYAWADA', to: 'GANNAVARAM', roadName: 'NH16 Airport Express Corridor', roadType: 'expressway', distanceKm: 18.0, baseSpeedKmH: 80, trafficFactor: 1.35, riskScore: 3.5, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_gan_han', from: 'GANNAVARAM', to: 'HANUMAN_JUNCTION', roadName: 'NH16 Tollway to Junction', roadType: 'expressway', distanceKm: 22.0, baseSpeedKmH: 85, trafficFactor: 1.28, riskScore: 3.2, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_han_elu', from: 'HANUMAN_JUNCTION', to: 'ELURU', roadName: 'NH16 Hanuman Junction-Eluru Tollway', roadType: 'expressway', distanceKm: 19.5, baseSpeedKmH: 85, trafficFactor: 1.25, riskScore: 3.0, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_gan_nuz', from: 'GANNAVARAM', to: 'NUZVID', roadName: 'SH42 Mango Belt Highway', roadType: 'state_highway', distanceKm: 26.0, baseSpeedKmH: 65, trafficFactor: 1.08, riskScore: 1.5, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_nuz_elu', from: 'NUZVID', to: 'ELURU', roadName: 'SH39 Nuzvid-Eluru Link Highway', roadType: 'state_highway', distanceKm: 36.0, baseSpeedKmH: 65, trafficFactor: 1.10, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_nuz_dwa', from: 'NUZVID', to: 'DWARAKA_TIRUMALA', roadName: 'SH38 Horticulture Belt Highway', roadType: 'state_highway', distanceKm: 34.0, baseSpeedKmH: 65, trafficFactor: 1.08, riskScore: 1.5, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_vja_gan', from: 'VIJAYAWADA', to: 'GANNAVARAM', roadName: 'NH16 Airport Express Corridor', roadType: 'expressway', distanceKm: 18.0, baseSpeedKmH: 85, trafficFactor: 1.15, riskScore: 2.0, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_vja_agi', from: 'VIJAYAWADA', to: 'AGIRIPALLI', roadName: 'SH42 Vijayawada-Agiripalli Road', roadType: 'state_highway', distanceKm: 23.0, baseSpeedKmH: 68, trafficFactor: 1.16, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_gan_agi', from: 'GANNAVARAM', to: 'AGIRIPALLI', roadName: 'Gannavaram-Agiripalli Connector', roadType: 'state_highway', distanceKm: 14.5, baseSpeedKmH: 65, trafficFactor: 1.14, riskScore: 1.7, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_agi_han', from: 'AGIRIPALLI', to: 'HANUMAN_JUNCTION', roadName: 'Agiripalli-Hanuman Junction Bypass', roadType: 'state_highway', distanceKm: 19.5, baseSpeedKmH: 68, trafficFactor: 1.15, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_agi_nuz', from: 'AGIRIPALLI', to: 'NUZVID', roadName: 'SH42 Agiripalli-Nuzvid Mango Highway', roadType: 'state_highway', distanceKm: 15.0, baseSpeedKmH: 68, trafficFactor: 1.14, riskScore: 1.7, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_gan_han', from: 'GANNAVARAM', to: 'HANUMAN_JUNCTION', roadName: 'NH16 Tollway to Junction', roadType: 'expressway', distanceKm: 22.0, baseSpeedKmH: 85, trafficFactor: 1.14, riskScore: 2.0, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_han_elu', from: 'HANUMAN_JUNCTION', to: 'ELURU', roadName: 'NH16 Hanuman Junction-Eluru Tollway', roadType: 'expressway', distanceKm: 19.5, baseSpeedKmH: 85, trafficFactor: 1.14, riskScore: 2.0, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_han_nuz', from: 'HANUMAN_JUNCTION', to: 'NUZVID', roadName: 'Hanuman Junction-Nuzvid Link', roadType: 'state_highway', distanceKm: 18.0, baseSpeedKmH: 68, trafficFactor: 1.15, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_gan_nuz', from: 'GANNAVARAM', to: 'NUZVID', roadName: 'SH42 Mango Belt Highway', roadType: 'state_highway', distanceKm: 27.0, baseSpeedKmH: 68, trafficFactor: 1.16, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_nuz_elu', from: 'NUZVID', to: 'ELURU', roadName: 'SH39 Nuzvid-Eluru Link Highway', roadType: 'state_highway', distanceKm: 34.0, baseSpeedKmH: 68, trafficFactor: 1.16, riskScore: 1.9, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_nuz_dwa', from: 'NUZVID', to: 'DWARAKA_TIRUMALA', roadName: 'SH38 Horticulture Belt Highway', roadType: 'state_highway', distanceKm: 38.0, baseSpeedKmH: 65, trafficFactor: 1.18, riskScore: 1.9, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_han_gud', from: 'HANUMAN_JUNCTION', to: 'GUDIVADA', roadName: 'SH45 Hanuman Junction-Gudivada Road', roadType: 'state_highway', distanceKm: 24.0, baseSpeedKmH: 66, trafficFactor: 1.16, riskScore: 1.9, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_gud_kai', from: 'GUDIVADA', to: 'KAIKALURU', roadName: 'NH165 Kolleru Lake Highway', roadType: 'national_highway', distanceKm: 29.0, baseSpeedKmH: 72, trafficFactor: 1.16, riskScore: 1.9, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_elu_kai', from: 'ELURU', to: 'KAIKALURU', roadName: 'SH44 Eluru-Kaikaluru Canal Road', roadType: 'state_highway', distanceKm: 26.0, baseSpeedKmH: 66, trafficFactor: 1.16, riskScore: 1.9, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_kai_aki', from: 'KAIKALURU', to: 'AKIVIDU', roadName: 'NH165 Kaikaluru-Akividu Highway', roadType: 'national_highway', distanceKm: 19.5, baseSpeedKmH: 72, trafficFactor: 1.16, riskScore: 1.9, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_aki_bhi', from: 'AKIVIDU', to: 'BHIMAVARAM', roadName: 'NH165 Akividu-Bhimavaram Highway', roadType: 'national_highway', distanceKm: 18.5, baseSpeedKmH: 72, trafficFactor: 1.16, riskScore: 1.9, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
   { id: 'e_vja_kan', from: 'VIJAYAWADA', to: 'KANKIPADU', roadName: 'NH65 Machilipatnam Road', roadType: 'national_highway', distanceKm: 14.2, baseSpeedKmH: 60, trafficFactor: 1.30, riskScore: 2.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
   { id: 'e_kan_vuy', from: 'KANKIPADU', to: 'VUYYURU', roadName: 'NH65 Sugar Belt Corridor', roadType: 'national_highway', distanceKm: 16.8, baseSpeedKmH: 65, trafficFactor: 1.20, riskScore: 2.2, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
   { id: 'e_vuy_pam', from: 'VUYYURU', to: 'PAMARRU', roadName: 'NH65 Pamarru Highway', roadType: 'national_highway', distanceKm: 14.5, baseSpeedKmH: 65, trafficFactor: 1.15, riskScore: 2.0, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
@@ -232,9 +274,17 @@ const RAW_EDGES: EdgeDef[] = [
   { id: 'e_ava_cha', from: 'AVANIGADDA', to: 'CHALLAPALLI', roadName: 'Diviseema Main Road', roadType: 'state_highway', distanceKm: 11.5, baseSpeedKmH: 55, trafficFactor: 1.10, riskScore: 1.5, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
   { id: 'e_cha_pam', from: 'CHALLAPALLI', to: 'PAMARRU', roadName: 'Challapalli-Pamarru Road', roadType: 'state_highway', distanceKm: 23.5, baseSpeedKmH: 60, trafficFactor: 1.10, riskScore: 1.6, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
   { id: 'e_bap_chi', from: 'BAPATLA', to: 'CHIRALA', roadName: 'NH216 Bapatla-Chirala Highway', roadType: 'national_highway', distanceKm: 16.5, baseSpeedKmH: 70, trafficFactor: 1.20, riskScore: 2.2, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_gun_pon', from: 'GUNTUR', to: 'PONNUR', roadName: 'SH48 Guntur-Ponnur Road', roadType: 'state_highway', distanceKm: 29.0, baseSpeedKmH: 66, trafficFactor: 1.16, riskScore: 1.9, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_chi_chr', from: 'CHILAKALURIPET', to: 'CHIRALA', roadName: 'NH167A Chilakaluripet-Chirala Highway', roadType: 'national_highway', distanceKm: 34.0, baseSpeedKmH: 72, trafficFactor: 1.15, riskScore: 1.9, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
 
   // Palnadu Corridors
-  { id: 'e_gun_chi', from: 'GUNTUR', to: 'CHILAKALURIPET', roadName: 'NH16 Guntur-Chilakaluripet Highway', roadType: 'expressway', distanceKm: 38.0, baseSpeedKmH: 85, trafficFactor: 1.35, riskScore: 4.2, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_gun_chi', from: 'GUNTUR', to: 'CHILAKALURIPET', roadName: 'NH16 Guntur-Chilakaluripet Highway', roadType: 'expressway', distanceKm: 38.0, baseSpeedKmH: 88, trafficFactor: 1.15, riskScore: 2.0, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_chi_mar', from: 'CHILAKALURIPET', to: 'MARTUR', roadName: 'NH16 Chilakaluripet-Martur Tollway', roadType: 'expressway', distanceKm: 17.5, baseSpeedKmH: 88, trafficFactor: 1.14, riskScore: 1.8, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_mar_med', from: 'MARTUR', to: 'MEDARAMETLA', roadName: 'NH16 Martur-Medarametla Expressway', roadType: 'expressway', distanceKm: 28.0, baseSpeedKmH: 88, trafficFactor: 1.14, riskScore: 1.8, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_med_ong', from: 'MEDARAMETLA', to: 'ONGOLE', roadName: 'NH16 Medarametla-Ongole Bypass', roadType: 'expressway', distanceKm: 24.0, baseSpeedKmH: 88, trafficFactor: 1.14, riskScore: 1.8, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_mar_add', from: 'MARTUR', to: 'ADDANKI', roadName: 'SH45 Martur-Addanki Link Road', roadType: 'state_highway', distanceKm: 21.0, baseSpeedKmH: 68, trafficFactor: 1.14, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_add_med', from: 'ADDANKI', to: 'MEDARAMETLA', roadName: 'NAM Expressway Addanki-Medarametla', roadType: 'state_highway', distanceKm: 14.0, baseSpeedKmH: 70, trafficFactor: 1.14, riskScore: 1.7, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_add_ong', from: 'ADDANKI', to: 'ONGOLE', roadName: 'Addanki-Ongole State Highway', roadType: 'state_highway', distanceKm: 36.0, baseSpeedKmH: 68, trafficFactor: 1.15, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
   { id: 'e_gun_sat', from: 'GUNTUR', to: 'SATTENAPALLI', roadName: 'SH2 Guntur-Sattenapalli Road', roadType: 'state_highway', distanceKm: 34.0, baseSpeedKmH: 65, trafficFactor: 1.15, riskScore: 2.1, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
   { id: 'e_sat_pid', from: 'SATTENAPALLI', to: 'PIDUGURALLA', roadName: 'SH2 Palnadu Highway', roadType: 'state_highway', distanceKm: 28.5, baseSpeedKmH: 70, trafficFactor: 1.15, riskScore: 2.0, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
   { id: 'e_pid_mac', from: 'PIDUGURALLA', to: 'MACHERLA', roadName: 'SH2 Nagarjuna Sagar Access', roadType: 'state_highway', distanceKm: 62.0, baseSpeedKmH: 70, trafficFactor: 1.10, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
@@ -245,84 +295,150 @@ const RAW_EDGES: EdgeDef[] = [
   // ==========================================
   // GODAVARI DELTA NETWORK
   // ==========================================
-  { id: 'e_elu_tad', from: 'ELURU', to: 'TADEPALLIGUDEM', roadName: 'NH16 Eluru-Tadepalligudem Expressway', roadType: 'expressway', distanceKm: 48.0, baseSpeedKmH: 85, trafficFactor: 1.30, riskScore: 3.2, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_elu_dwa', from: 'ELURU', to: 'DWARAKA_TIRUMALA', roadName: 'SH41 Chinna Tirupati Road', roadType: 'state_highway', distanceKm: 38.0, baseSpeedKmH: 65, trafficFactor: 1.08, riskScore: 1.6, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_elu_jan', from: 'ELURU', to: 'JANGAREDDYGUDEM', roadName: 'SH40 Agency Highway', roadType: 'state_highway', distanceKm: 52.0, baseSpeedKmH: 65, trafficFactor: 1.08, riskScore: 1.6, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_tad_tan', from: 'TADEPALLIGUDEM', to: 'TANUKU', roadName: 'NH16 Tadepalligudem-Tanuku Tollway', roadType: 'expressway', distanceKm: 18.0, baseSpeedKmH: 85, trafficFactor: 1.45, riskScore: 5.2, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_tad_kov', from: 'TADEPALLIGUDEM', to: 'KOVVUR', roadName: 'SH41 Godavari Link Bypass', roadType: 'state_highway', distanceKm: 34.0, baseSpeedKmH: 75, trafficFactor: 1.14, riskScore: 2.2, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_dwa_kov', from: 'DWARAKA_TIRUMALA', to: 'KOVVUR', roadName: 'SH42 Temple Express Bypass', roadType: 'state_highway', distanceKm: 42.0, baseSpeedKmH: 70, trafficFactor: 1.09, riskScore: 1.7, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_jan_kov', from: 'JANGAREDDYGUDEM', to: 'KOVVUR', roadName: 'SH43 Polavaram Canal Expressway', roadType: 'state_highway', distanceKm: 38.0, baseSpeedKmH: 70, trafficFactor: 1.08, riskScore: 1.6, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_tad_bhi', from: 'TADEPALLIGUDEM', to: 'BHIMAVARAM', roadName: 'SH43 Rice Bowl Highway', roadType: 'state_highway', distanceKm: 32.0, baseSpeedKmH: 60, trafficFactor: 1.20, riskScore: 2.2, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_bhi_pal', from: 'BHIMAVARAM', to: 'PALAKOLLU', roadName: 'SH44 Pancharama Road', roadType: 'state_highway', distanceKm: 22.0, baseSpeedKmH: 55, trafficFactor: 1.20, riskScore: 2.0, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_pal_nar', from: 'PALAKOLLU', to: 'NARASAPURAM', roadName: 'SH44 Godavari Lace Corridor', roadType: 'state_highway', distanceKm: 12.0, baseSpeedKmH: 55, trafficFactor: 1.15, riskScore: 1.9, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_nar_ant', from: 'NARASAPURAM', to: 'ANTARVEDI', roadName: 'Vasista Godavari Estuary Road', roadType: 'arterial', distanceKm: 18.0, baseSpeedKmH: 50, trafficFactor: 1.10, riskScore: 1.7, roadCondition: 'fair', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_ant_ama', from: 'ANTARVEDI', to: 'AMALAPURAM', roadName: 'Konaseema Coconut Belt Road', roadType: 'state_highway', distanceKm: 38.0, baseSpeedKmH: 55, trafficFactor: 1.10, riskScore: 1.6, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_ama_din', from: 'AMALAPURAM', to: 'DINDI', roadName: 'Razole-Dindi Scenic Highway', roadType: 'state_highway', distanceKm: 22.0, baseSpeedKmH: 55, trafficFactor: 1.05, riskScore: 1.2, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_tan_rav', from: 'TANUKU', to: 'RAVULAPALEM', roadName: 'NH16 Siddhantham Bridge Corridor', roadType: 'expressway', distanceKm: 18.0, baseSpeedKmH: 80, trafficFactor: 1.68, riskScore: 7.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_rav_raj', from: 'RAVULAPALEM', to: 'RAJAHMUNDRY', roadName: 'NH16 Godavari Tollway', roadType: 'expressway', distanceKm: 34.0, baseSpeedKmH: 85, trafficFactor: 1.62, riskScore: 7.5, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_rav_ama', from: 'RAVULAPALEM', to: 'AMALAPURAM', roadName: 'SH45 Konaseema Gateway', roadType: 'state_highway', distanceKm: 28.0, baseSpeedKmH: 60, trafficFactor: 1.20, riskScore: 2.1, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_raj_kov', from: 'RAJAHMUNDRY', to: 'KOVVUR', roadName: 'Godavari Fourth Bridge / Arch Bridge', roadType: 'national_highway', distanceKm: 8.5, baseSpeedKmH: 60, trafficFactor: 1.40, riskScore: 3.5, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_kov_pat', from: 'KOVVUR', to: 'PATTISEEMA', roadName: 'Godavari Riverbank Road', roadType: 'state_highway', distanceKm: 42.0, baseSpeedKmH: 55, trafficFactor: 1.05, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_raj_sam', from: 'RAJAHMUNDRY', to: 'SAMALKOTA', roadName: 'ADB Road Dedicated Tollway', roadType: 'national_highway', distanceKm: 48.0, baseSpeedKmH: 80, trafficFactor: 1.15, riskScore: 2.5, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_elu_bhm', from: 'ELURU', to: 'BHIMADOLE', roadName: 'NH16 Eluru-Bhimadole Expressway', roadType: 'expressway', distanceKm: 21.0, baseSpeedKmH: 86, trafficFactor: 1.14, riskScore: 1.9, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_bhm_ung', from: 'BHIMADOLE', to: 'UNGUTURU', roadName: 'NH16 Bhimadole-Unguturu Tollway', roadType: 'expressway', distanceKm: 15.0, baseSpeedKmH: 86, trafficFactor: 1.14, riskScore: 1.9, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_ung_tad', from: 'UNGUTURU', to: 'TADEPALLIGUDEM', roadName: 'NH16 Unguturu-Tadepalligudem Expressway', roadType: 'expressway', distanceKm: 13.5, baseSpeedKmH: 86, trafficFactor: 1.14, riskScore: 1.9, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_bhm_dwa', from: 'BHIMADOLE', to: 'DWARAKA_TIRUMALA', roadName: 'Bhimadole-Dwaraka Tirumala Temple Road', roadType: 'state_highway', distanceKm: 16.5, baseSpeedKmH: 66, trafficFactor: 1.14, riskScore: 1.7, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_dwa_ung', from: 'DWARAKA_TIRUMALA', to: 'UNGUTURU', roadName: 'Dwaraka Tirumala-Unguturu Link Road', roadType: 'state_highway', distanceKm: 21.0, baseSpeedKmH: 66, trafficFactor: 1.15, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_elu_dwa', from: 'ELURU', to: 'DWARAKA_TIRUMALA', roadName: 'SH41 Chinna Tirupati Road', roadType: 'state_highway', distanceKm: 35.0, baseSpeedKmH: 65, trafficFactor: 1.16, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_elu_jan', from: 'ELURU', to: 'JANGAREDDYGUDEM', roadName: 'SH40 Agency Highway', roadType: 'state_highway', distanceKm: 52.0, baseSpeedKmH: 65, trafficFactor: 1.16, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_jan_koy', from: 'JANGAREDDYGUDEM', to: 'KOYYALAGUDEM', roadName: 'SH43 Jangareddygudem-Koyyalagudem Road', roadType: 'state_highway', distanceKm: 18.0, baseSpeedKmH: 66, trafficFactor: 1.14, riskScore: 1.7, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_koy_kov', from: 'KOYYALAGUDEM', to: 'KOVVUR', roadName: 'SH43 Koyyalagudem-Kovvur Highway', roadType: 'state_highway', distanceKm: 32.0, baseSpeedKmH: 68, trafficFactor: 1.15, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_tad_koy', from: 'TADEPALLIGUDEM', to: 'KOYYALAGUDEM', roadName: 'Tadepalligudem-Koyyalagudem Link', roadType: 'state_highway', distanceKm: 28.0, baseSpeedKmH: 65, trafficFactor: 1.15, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_tad_tan', from: 'TADEPALLIGUDEM', to: 'TANUKU', roadName: 'NH16 Tadepalligudem-Tanuku Tollway', roadType: 'expressway', distanceKm: 18.0, baseSpeedKmH: 86, trafficFactor: 1.14, riskScore: 1.9, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_dwa_tad', from: 'DWARAKA_TIRUMALA', to: 'TADEPALLIGUDEM', roadName: 'SH41 Dwaraka Tirumala-Tadepalligudem Link', roadType: 'state_highway', distanceKm: 29.0, baseSpeedKmH: 65, trafficFactor: 1.16, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_tad_nid', from: 'TADEPALLIGUDEM', to: 'NIDADAVOLE', roadName: 'SH42 Canal Corridor', roadType: 'state_highway', distanceKm: 19.5, baseSpeedKmH: 68, trafficFactor: 1.15, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_tan_nid', from: 'TANUKU', to: 'NIDADAVOLE', roadName: 'Tanuku-Nidadavole Link Road', roadType: 'state_highway', distanceKm: 15.5, baseSpeedKmH: 68, trafficFactor: 1.15, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_nid_kov', from: 'NIDADAVOLE', to: 'KOVVUR', roadName: 'SH42 Nidadavole-Kovvur Highway', roadType: 'state_highway', distanceKm: 15.5, baseSpeedKmH: 68, trafficFactor: 1.15, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_tan_kov', from: 'TANUKU', to: 'KOVVUR', roadName: 'NH216A Tanuku-Kovvur Approach', roadType: 'national_highway', distanceKm: 24.0, baseSpeedKmH: 74, trafficFactor: 1.18, riskScore: 2.1, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_tad_bhi', from: 'TADEPALLIGUDEM', to: 'BHIMAVARAM', roadName: 'SH43 Rice Bowl Highway', roadType: 'state_highway', distanceKm: 32.0, baseSpeedKmH: 65, trafficFactor: 1.18, riskScore: 2.0, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_bhi_tan', from: 'BHIMAVARAM', to: 'TANUKU', roadName: 'Bhimavaram-Tanuku Canal Highway', roadType: 'state_highway', distanceKm: 26.0, baseSpeedKmH: 65, trafficFactor: 1.16, riskScore: 1.9, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_bhi_pal', from: 'BHIMAVARAM', to: 'PALAKOLLU', roadName: 'SH44 Pancharama Road', roadType: 'state_highway', distanceKm: 22.0, baseSpeedKmH: 62, trafficFactor: 1.16, riskScore: 2.0, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_pal_rav', from: 'PALAKOLLU', to: 'RAVULAPALEM', roadName: 'Palakollu-Ravulapalem Bridge Link', roadType: 'state_highway', distanceKm: 27.0, baseSpeedKmH: 66, trafficFactor: 1.16, riskScore: 1.9, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_pal_nar', from: 'PALAKOLLU', to: 'NARASAPURAM', roadName: 'SH44 Godavari Lace Corridor', roadType: 'state_highway', distanceKm: 12.0, baseSpeedKmH: 60, trafficFactor: 1.15, riskScore: 1.9, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_nar_ant', from: 'NARASAPURAM', to: 'ANTARVEDI', roadName: 'Vasista Godavari Estuary Road', roadType: 'arterial', distanceKm: 18.0, baseSpeedKmH: 55, trafficFactor: 1.12, riskScore: 1.7, roadCondition: 'fair', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_ant_ama', from: 'ANTARVEDI', to: 'AMALAPURAM', roadName: 'Konaseema Coconut Belt Road', roadType: 'state_highway', distanceKm: 38.0, baseSpeedKmH: 60, trafficFactor: 1.14, riskScore: 1.6, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_ama_din', from: 'AMALAPURAM', to: 'DINDI', roadName: 'Razole-Dindi Scenic Highway', roadType: 'state_highway', distanceKm: 22.0, baseSpeedKmH: 60, trafficFactor: 1.10, riskScore: 1.2, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_tan_rav', from: 'TANUKU', to: 'RAVULAPALEM', roadName: 'NH16 Siddhantham Bridge Corridor', roadType: 'expressway', distanceKm: 18.0, baseSpeedKmH: 85, trafficFactor: 1.15, riskScore: 2.0, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_rav_raj', from: 'RAVULAPALEM', to: 'RAJAHMUNDRY', roadName: 'NH16 Godavari Tollway', roadType: 'expressway', distanceKm: 31.0, baseSpeedKmH: 86, trafficFactor: 1.15, riskScore: 2.0, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_rav_ama', from: 'RAVULAPALEM', to: 'AMALAPURAM', roadName: 'SH45 Konaseema Gateway', roadType: 'state_highway', distanceKm: 28.0, baseSpeedKmH: 66, trafficFactor: 1.16, riskScore: 1.9, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_raj_kov', from: 'RAJAHMUNDRY', to: 'KOVVUR', roadName: 'Godavari Fourth Bridge / Arch Bridge', roadType: 'national_highway', distanceKm: 9.5, baseSpeedKmH: 68, trafficFactor: 1.18, riskScore: 2.1, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_kov_pat', from: 'KOVVUR', to: 'PATTISEEMA', roadName: 'Godavari Riverbank Road', roadType: 'state_highway', distanceKm: 42.0, baseSpeedKmH: 55, trafficFactor: 1.12, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_raj_rjn', from: 'RAJAHMUNDRY', to: 'RAJANAGARAM', roadName: 'NH16 Rajanagaram Expressway', roadType: 'expressway', distanceKm: 16.0, baseSpeedKmH: 86, trafficFactor: 1.14, riskScore: 1.9, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_rjn_jag', from: 'RAJANAGARAM', to: 'JAGGAMPETA', roadName: 'NH16 Rajanagaram-Jaggampeta Tollway', roadType: 'expressway', distanceKm: 21.0, baseSpeedKmH: 86, trafficFactor: 1.14, riskScore: 1.9, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_jag_pra', from: 'JAGGAMPETA', to: 'PRATHIPADU', roadName: 'NH16 Jaggampeta-Prathipadu Expressway', roadType: 'expressway', distanceKm: 15.0, baseSpeedKmH: 86, trafficFactor: 1.14, riskScore: 1.9, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_rjn_sam', from: 'RAJANAGARAM', to: 'SAMALKOTA', roadName: 'ADB Highway Rajanagaram-Samalkota', roadType: 'national_highway', distanceKm: 31.0, baseSpeedKmH: 76, trafficFactor: 1.16, riskScore: 2.0, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_rjn_ped', from: 'RAJANAGARAM', to: 'PEDDAPURAM', roadName: 'SH40 Rajanagaram-Peddapuram Road', roadType: 'state_highway', distanceKm: 28.0, baseSpeedKmH: 72, trafficFactor: 1.15, riskScore: 1.9, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_jag_ped', from: 'JAGGAMPETA', to: 'PEDDAPURAM', roadName: 'SH40 Jaggampeta-Peddapuram Link', roadType: 'state_highway', distanceKm: 14.5, baseSpeedKmH: 68, trafficFactor: 1.14, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_jag_yel', from: 'JAGGAMPETA', to: 'YELESWARAM', roadName: 'Jaggampeta-Yeleswaram Reservoir Road', roadType: 'state_highway', distanceKm: 15.0, baseSpeedKmH: 66, trafficFactor: 1.14, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_yel_pra', from: 'YELESWARAM', to: 'PRATHIPADU', roadName: 'Yeleswaram-Prathipadu Foothill Link', roadType: 'state_highway', distanceKm: 13.5, baseSpeedKmH: 66, trafficFactor: 1.14, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_ped_pra', from: 'PEDDAPURAM', to: 'PRATHIPADU', roadName: 'Peddapuram-Prathipadu Connector', roadType: 'state_highway', distanceKm: 18.0, baseSpeedKmH: 68, trafficFactor: 1.15, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_raj_mnd', from: 'RAJAHMUNDRY', to: 'MANDAPETA', roadName: 'SH41 Rajahmundry-Mandapeta Road', roadType: 'state_highway', distanceKm: 24.0, baseSpeedKmH: 68, trafficFactor: 1.15, riskScore: 2.0, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_rav_mnd', from: 'RAVULAPALEM', to: 'MANDAPETA', roadName: 'Jonnalanka-Mandapeta Bypass', roadType: 'state_highway', distanceKm: 21.0, baseSpeedKmH: 65, trafficFactor: 1.15, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_mnd_rcp', from: 'MANDAPETA', to: 'RAMACHANDRAPURAM', roadName: 'SH41 Mandapeta-Ramachandrapuram Highway', roadType: 'state_highway', distanceKm: 14.0, baseSpeedKmH: 65, trafficFactor: 1.15, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_mnd_sam', from: 'MANDAPETA', to: 'SAMALKOTA', roadName: 'Mandapeta-Samalkota Canal Link', roadType: 'state_highway', distanceKm: 28.0, baseSpeedKmH: 68, trafficFactor: 1.15, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_rcp_kak', from: 'RAMACHANDRAPURAM', to: 'KAKINADA', roadName: 'SH41 Ramachandrapuram-Kakinada Highway', roadType: 'state_highway', distanceKm: 26.0, baseSpeedKmH: 70, trafficFactor: 1.16, riskScore: 2.0, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_rcp_sam', from: 'RAMACHANDRAPURAM', to: 'SAMALKOTA', roadName: 'Ramachandrapuram-Samalkota Link', roadType: 'state_highway', distanceKm: 24.0, baseSpeedKmH: 68, trafficFactor: 1.15, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
   { id: 'e_sam_kak', from: 'SAMALKOTA', to: 'KAKINADA', roadName: 'SH42 Kakinada Port Access', roadType: 'national_highway', distanceKm: 14.0, baseSpeedKmH: 70, trafficFactor: 1.18, riskScore: 2.2, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
   { id: 'e_sam_ped', from: 'SAMALKOTA', to: 'PEDDAPURAM', roadName: 'Silk Belt Road', roadType: 'state_highway', distanceKm: 6.5, baseSpeedKmH: 65, trafficFactor: 1.15, riskScore: 2.0, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_ama_dra', from: 'AMALAPURAM', to: 'DRAKSHARAMAM', roadName: 'SH46 Temple Highway', roadType: 'state_highway', distanceKm: 26.0, baseSpeedKmH: 55, trafficFactor: 1.10, riskScore: 1.6, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_dra_kak', from: 'DRAKSHARAMAM', to: 'KAKINADA', roadName: 'SH46 Kakinada South Access', roadType: 'state_highway', distanceKm: 24.0, baseSpeedKmH: 60, trafficFactor: 1.25, riskScore: 2.3, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_kak_upp', from: 'KAKINADA', to: 'UPPADA', roadName: 'Uppada Beach Road Corridor', roadType: 'state_highway', distanceKm: 18.0, baseSpeedKmH: 60, trafficFactor: 1.06, riskScore: 1.3, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_upp_ann', from: 'UPPADA', to: 'ANNAVARAM', roadName: 'NH216 Coastal Greenfield Highway', roadType: 'expressway', distanceKm: 28.0, baseSpeedKmH: 85, trafficFactor: 1.05, riskScore: 1.2, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_sam_pit', from: 'SAMALKOTA', to: 'PITHAPURAM', roadName: 'NH216 Samalkota-Pithapuram Highway', roadType: 'national_highway', distanceKm: 12.0, baseSpeedKmH: 72, trafficFactor: 1.15, riskScore: 1.8, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_ped_pit', from: 'PEDDAPURAM', to: 'PITHAPURAM', roadName: 'Peddapuram-Pithapuram Link Road', roadType: 'state_highway', distanceKm: 14.5, baseSpeedKmH: 65, trafficFactor: 1.14, riskScore: 1.7, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_pra_pit', from: 'PRATHIPADU', to: 'PITHAPURAM', roadName: 'Prathipadu-Pithapuram Connector', roadType: 'state_highway', distanceKm: 15.0, baseSpeedKmH: 68, trafficFactor: 1.14, riskScore: 1.7, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_pit_kat', from: 'PITHAPURAM', to: 'KATHIPUDI', roadName: 'NH216 Pithapuram-Kathipudi Bypass', roadType: 'national_highway', distanceKm: 15.0, baseSpeedKmH: 74, trafficFactor: 1.14, riskScore: 1.7, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_pra_kat', from: 'PRATHIPADU', to: 'KATHIPUDI', roadName: 'NH16 Prathipadu-Kathipudi Stretch', roadType: 'expressway', distanceKm: 14.0, baseSpeedKmH: 86, trafficFactor: 1.14, riskScore: 1.8, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_kat_ann', from: 'KATHIPUDI', to: 'ANNAVARAM', roadName: 'NH16 Kathipudi-Annavaram Ghat Approach', roadType: 'expressway', distanceKm: 12.0, baseSpeedKmH: 86, trafficFactor: 1.14, riskScore: 1.8, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_kat_row', from: 'KATHIPUDI', to: 'ROWTHULAPUDI', roadName: 'Kathipudi-Rowthulapudi Foothill Road', roadType: 'state_highway', distanceKm: 13.0, baseSpeedKmH: 68, trafficFactor: 1.14, riskScore: 1.7, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_row_ann', from: 'ROWTHULAPUDI', to: 'ANNAVARAM', roadName: 'Rowthulapudi-Annavaram Link Road', roadType: 'state_highway', distanceKm: 11.5, baseSpeedKmH: 66, trafficFactor: 1.14, riskScore: 1.7, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_row_tun', from: 'ROWTHULAPUDI', to: 'TUNI', roadName: 'Rowthulapudi-Tuni Parallel Bypass', roadType: 'state_highway', distanceKm: 16.5, baseSpeedKmH: 68, trafficFactor: 1.14, riskScore: 1.7, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_upp_pit', from: 'UPPADA', to: 'PITHAPURAM', roadName: 'Uppada-Pithapuram Coastal Link', roadType: 'state_highway', distanceKm: 14.0, baseSpeedKmH: 65, trafficFactor: 1.14, riskScore: 1.4, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_ama_dra', from: 'AMALAPURAM', to: 'DRAKSHARAMAM', roadName: 'SH46 Temple Highway', roadType: 'state_highway', distanceKm: 26.0, baseSpeedKmH: 55, trafficFactor: 1.14, riskScore: 1.6, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_dra_kak', from: 'DRAKSHARAMAM', to: 'KAKINADA', roadName: 'SH46 Kakinada South Access', roadType: 'state_highway', distanceKm: 24.0, baseSpeedKmH: 60, trafficFactor: 1.20, riskScore: 2.1, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_dra_rcp', from: 'DRAKSHARAMAM', to: 'RAMACHANDRAPURAM', roadName: 'Draksharamam-Ramachandrapuram Road', roadType: 'state_highway', distanceKm: 8.5, baseSpeedKmH: 60, trafficFactor: 1.14, riskScore: 1.6, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_kak_upp', from: 'KAKINADA', to: 'UPPADA', roadName: 'Uppada Beach Road Corridor', roadType: 'state_highway', distanceKm: 18.0, baseSpeedKmH: 60, trafficFactor: 1.14, riskScore: 1.3, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_upp_ann', from: 'UPPADA', to: 'ANNAVARAM', roadName: 'Coastal Greenfield Link Road', roadType: 'state_highway', distanceKm: 28.0, baseSpeedKmH: 68, trafficFactor: 1.15, riskScore: 1.7, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
 
   // ==========================================
   // NORTH COASTAL AP / UTTARANDHRA HIGHWAY CORRIDOR
   // ==========================================
-  { id: 'e_ped_ann', from: 'PEDDAPURAM', to: 'ANNAVARAM', roadName: 'NH16 Annavaram Access Expressway', roadType: 'expressway', distanceKm: 34.0, baseSpeedKmH: 85, trafficFactor: 1.20, riskScore: 2.5, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_ann_tun', from: 'ANNAVARAM', to: 'TUNI', roadName: 'NH16 Tollway Stretch', roadType: 'expressway', distanceKm: 16.0, baseSpeedKmH: 90, trafficFactor: 1.12, riskScore: 1.5, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_tun_pay', from: 'TUNI', to: 'PAYAKARAOPETA', roadName: 'Tuni-Payakaraopeta Tandava Bridge Bottleneck', roadType: 'national_highway', distanceKm: 3.5, baseSpeedKmH: 60, trafficFactor: 1.58, riskScore: 7.2, roadCondition: 'fair', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_pay_yel', from: 'PAYAKARAOPETA', to: 'YELAMANCHILI', roadName: 'NH16 Coastal Freight Tollway', roadType: 'expressway', distanceKm: 38.0, baseSpeedKmH: 85, trafficFactor: 1.52, riskScore: 6.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_yel_ana', from: 'YELAMANCHILI', to: 'ANAKAPALLE', roadName: 'NH16 Anakapalle Jaggery Chokepoint', roadType: 'expressway', distanceKm: 22.0, baseSpeedKmH: 80, trafficFactor: 1.55, riskScore: 7.4, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_ana_viz', from: 'ANAKAPALLE', to: 'VISAKHAPATNAM', roadName: 'NH16 Gajuwaka Steel Plant Bottleneck', roadType: 'expressway', distanceKm: 28.5, baseSpeedKmH: 75, trafficFactor: 1.75, riskScore: 8.2, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_tun_nar', from: 'TUNI', to: 'NARSIPATNAM', roadName: 'SH37 Agency Foothill Bypass', roadType: 'state_highway', distanceKm: 36.0, baseSpeedKmH: 70, trafficFactor: 1.06, riskScore: 1.4, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_ana_nar', from: 'ANAKAPALLE', to: 'NARSIPATNAM', roadName: 'SH38 Agency Highway', roadType: 'state_highway', distanceKm: 46.0, baseSpeedKmH: 65, trafficFactor: 1.08, riskScore: 1.6, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_nar_pad', from: 'NARSIPATNAM', to: 'PADERU', roadName: 'Ghat Road Corridor', roadType: 'state_highway', distanceKm: 58.0, baseSpeedKmH: 45, trafficFactor: 1.05, riskScore: 4.5, roadCondition: 'fair', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_pad_ara', from: 'PADERU', to: 'ARAKU_VALLEY', roadName: 'Eastern Ghats Scenic Highway', roadType: 'state_highway', distanceKm: 42.0, baseSpeedKmH: 45, trafficFactor: 1.05, riskScore: 3.5, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_viz_bhe', from: 'VISAKHAPATNAM', to: 'BHEEMUNIPATNAM', roadName: 'Visakhapatnam-Bheemili Beach Road', roadType: 'expressway', distanceKm: 28.0, baseSpeedKmH: 65, trafficFactor: 1.15, riskScore: 1.3, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_bhe_bho', from: 'BHEEMUNIPATNAM', to: 'BHOGAPURAM', roadName: 'International Airport Access Link', roadType: 'expressway', distanceKm: 18.0, baseSpeedKmH: 80, trafficFactor: 1.10, riskScore: 1.2, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_viz_vzn', from: 'VISAKHAPATNAM', to: 'VIZIANAGARAM', roadName: 'NH26 Vizag-Vizianagaram Expressway', roadType: 'expressway', distanceKm: 48.0, baseSpeedKmH: 80, trafficFactor: 1.25, riskScore: 2.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_bho_vzn', from: 'BHOGAPURAM', to: 'VIZIANAGARAM', roadName: 'SH48 Airport Connector', roadType: 'state_highway', distanceKm: 16.0, baseSpeedKmH: 70, trafficFactor: 1.05, riskScore: 1.2, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_ann_tun', from: 'ANNAVARAM', to: 'TUNI', roadName: 'NH16 Annavaram-Tuni Expressway', roadType: 'expressway', distanceKm: 16.0, baseSpeedKmH: 88, trafficFactor: 1.14, riskScore: 1.7, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_tun_pay', from: 'TUNI', to: 'PAYAKARAOPETA', roadName: 'NH16 Tuni-Payakaraopeta Tandava Bridge', roadType: 'expressway', distanceKm: 4.5, baseSpeedKmH: 82, trafficFactor: 1.15, riskScore: 1.8, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_pay_nak', from: 'PAYAKARAOPETA', to: 'NAKKAPALLI', roadName: 'NH16 Payakaraopeta-Nakkapalli Stretch', roadType: 'expressway', distanceKm: 15.0, baseSpeedKmH: 88, trafficFactor: 1.14, riskScore: 1.8, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_tun_nak', from: 'TUNI', to: 'NAKKAPALLI', roadName: 'Tuni-Nakkapalli Bypass Highway', roadType: 'state_highway', distanceKm: 21.5, baseSpeedKmH: 72, trafficFactor: 1.16, riskScore: 1.9, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_tun_kot', from: 'TUNI', to: 'KOTAURATLA', roadName: 'SH97 Tuni-Kotauratla Road', roadType: 'state_highway', distanceKm: 22.0, baseSpeedKmH: 68, trafficFactor: 1.15, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_pay_kot', from: 'PAYAKARAOPETA', to: 'KOTAURATLA', roadName: 'Payakaraopeta-Kotauratla Link', roadType: 'state_highway', distanceKm: 19.5, baseSpeedKmH: 68, trafficFactor: 1.15, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_nak_kot', from: 'NAKKAPALLI', to: 'KOTAURATLA', roadName: 'Nakkapalli-Kotauratla Connector', roadType: 'state_highway', distanceKm: 16.0, baseSpeedKmH: 68, trafficFactor: 1.14, riskScore: 1.7, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_kot_yel', from: 'KOTAURATLA', to: 'YELAMANCHILI', roadName: 'Kotauratla-Yelamanchili Link Road', roadType: 'state_highway', distanceKm: 18.5, baseSpeedKmH: 68, trafficFactor: 1.15, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_kot_nar', from: 'KOTAURATLA', to: 'NARSIPATNAM', roadName: 'SH39 Kotauratla-Narsipatnam Highway', roadType: 'state_highway', distanceKm: 15.5, baseSpeedKmH: 68, trafficFactor: 1.14, riskScore: 1.7, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_nak_yel', from: 'NAKKAPALLI', to: 'YELAMANCHILI', roadName: 'NH16 Nakkapalli-Yelamanchili Tollway', roadType: 'expressway', distanceKm: 21.0, baseSpeedKmH: 88, trafficFactor: 1.14, riskScore: 1.8, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_yel_ana', from: 'YELAMANCHILI', to: 'ANAKAPALLE', roadName: 'NH16 Anakapalle Jaggery Corridor', roadType: 'expressway', distanceKm: 22.0, baseSpeedKmH: 86, trafficFactor: 1.15, riskScore: 1.9, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_yel_nar', from: 'YELAMANCHILI', to: 'NARSIPATNAM', roadName: 'Yelamanchili-Narsipatnam State Road', roadType: 'state_highway', distanceKm: 28.0, baseSpeedKmH: 66, trafficFactor: 1.16, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_nar_cho', from: 'NARSIPATNAM', to: 'CHODAVARAM', roadName: 'SH38 Narsipatnam-Chodavaram Road', roadType: 'state_highway', distanceKm: 34.0, baseSpeedKmH: 68, trafficFactor: 1.15, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_yel_cho', from: 'YELAMANCHILI', to: 'CHODAVARAM', roadName: 'Yelamanchili-Chodavaram Bypass', roadType: 'state_highway', distanceKm: 29.0, baseSpeedKmH: 68, trafficFactor: 1.15, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_cho_ana', from: 'CHODAVARAM', to: 'ANAKAPALLE', roadName: 'SH38 Chodavaram-Anakapalle Highway', roadType: 'state_highway', distanceKm: 18.0, baseSpeedKmH: 68, trafficFactor: 1.15, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_cho_pen', from: 'CHODAVARAM', to: 'PENDURTHI', roadName: 'Chodavaram-Pendurthi Sabbavaram Road', roadType: 'state_highway', distanceKm: 24.0, baseSpeedKmH: 70, trafficFactor: 1.14, riskScore: 1.7, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_ana_gaj', from: 'ANAKAPALLE', to: 'GAJUWAKA', roadName: 'NH16 Anakapalle-Gajuwaka Industrial Expressway', roadType: 'expressway', distanceKm: 16.5, baseSpeedKmH: 84, trafficFactor: 1.16, riskScore: 2.0, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_gaj_viz', from: 'GAJUWAKA', to: 'VISAKHAPATNAM', roadName: 'NH16 Gajuwaka-Visakhapatnam Port Corridor', roadType: 'expressway', distanceKm: 13.0, baseSpeedKmH: 82, trafficFactor: 1.16, riskScore: 2.0, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_ana_pen', from: 'ANAKAPALLE', to: 'PENDURTHI', roadName: 'Anakapalle-Pendurthi Outer Ring Road', roadType: 'national_highway', distanceKm: 22.0, baseSpeedKmH: 76, trafficFactor: 1.15, riskScore: 1.8, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_gaj_pen', from: 'GAJUWAKA', to: 'PENDURTHI', roadName: 'Gajuwaka-Pendurthi NAD Link Road', roadType: 'state_highway', distanceKm: 14.5, baseSpeedKmH: 68, trafficFactor: 1.16, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_pen_sim', from: 'PENDURTHI', to: 'SIMHACHALAM', roadName: 'Pendurthi-Simhachalam BRTS Corridor', roadType: 'state_highway', distanceKm: 9.5, baseSpeedKmH: 68, trafficFactor: 1.15, riskScore: 1.7, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_sim_viz', from: 'SIMHACHALAM', to: 'VISAKHAPATNAM', roadName: 'Simhachalam-Visakhapatnam City Link', roadType: 'state_highway', distanceKm: 11.0, baseSpeedKmH: 68, trafficFactor: 1.15, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_pen_viz', from: 'PENDURTHI', to: 'VISAKHAPATNAM', roadName: 'NH26 Pendurthi-Visakhapatnam NAD Corridor', roadType: 'national_highway', distanceKm: 18.0, baseSpeedKmH: 72, trafficFactor: 1.16, riskScore: 1.9, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_pen_tag', from: 'PENDURTHI', to: 'TAGARAPUVALASA', roadName: 'SH38 Pendurthi-Tagarapuvalasa Bypass', roadType: 'expressway', distanceKm: 26.0, baseSpeedKmH: 82, trafficFactor: 1.12, riskScore: 1.5, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_viz_tag', from: 'VISAKHAPATNAM', to: 'TAGARAPUVALASA', roadName: 'NH16 Madhurawada-Tagarapuvalasa Expressway', roadType: 'expressway', distanceKm: 29.0, baseSpeedKmH: 82, trafficFactor: 1.16, riskScore: 2.0, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_tag_vzn', from: 'TAGARAPUVALASA', to: 'VIZIANAGARAM', roadName: 'NH26 Tagarapuvalasa-Vizianagaram Highway', roadType: 'national_highway', distanceKm: 22.0, baseSpeedKmH: 78, trafficFactor: 1.15, riskScore: 1.9, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_tag_bho', from: 'TAGARAPUVALASA', to: 'BHOGAPURAM', roadName: 'NH16 Bhogapuram Greenfield Corridor', roadType: 'expressway', distanceKm: 14.0, baseSpeedKmH: 85, trafficFactor: 1.12, riskScore: 1.4, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_ana_nar', from: 'ANAKAPALLE', to: 'NARSIPATNAM', roadName: 'SH38 Agency Highway', roadType: 'state_highway', distanceKm: 38.0, baseSpeedKmH: 66, trafficFactor: 1.16, riskScore: 1.7, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_nar_pad', from: 'NARSIPATNAM', to: 'PADERU', roadName: 'Ghat Road Corridor', roadType: 'state_highway', distanceKm: 58.0, baseSpeedKmH: 45, trafficFactor: 1.12, riskScore: 4.5, roadCondition: 'fair', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_pad_ara', from: 'PADERU', to: 'ARAKU_VALLEY', roadName: 'Eastern Ghats Scenic Highway', roadType: 'state_highway', distanceKm: 42.0, baseSpeedKmH: 45, trafficFactor: 1.12, riskScore: 3.5, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_viz_bhe', from: 'VISAKHAPATNAM', to: 'BHEEMUNIPATNAM', roadName: 'Visakhapatnam-Bheemili Beach Road', roadType: 'expressway', distanceKm: 28.0, baseSpeedKmH: 68, trafficFactor: 1.15, riskScore: 1.3, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_bhe_bho', from: 'BHEEMUNIPATNAM', to: 'BHOGAPURAM', roadName: 'International Airport Access Link', roadType: 'expressway', distanceKm: 18.0, baseSpeedKmH: 80, trafficFactor: 1.12, riskScore: 1.2, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_bho_vzn', from: 'BHOGAPURAM', to: 'VIZIANAGARAM', roadName: 'SH48 Airport Connector', roadType: 'state_highway', distanceKm: 16.0, baseSpeedKmH: 70, trafficFactor: 1.12, riskScore: 1.2, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
   { id: 'e_vzn_bob', from: 'VIZIANAGARAM', to: 'BOBBILI', roadName: 'NH26 Historic Fort Highway', roadType: 'national_highway', distanceKm: 52.0, baseSpeedKmH: 70, trafficFactor: 1.15, riskScore: 2.1, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_bob_par', from: 'BOBBILI', to: 'PARVATHIPURAM', roadName: 'NH26 Manyam District Highway', roadType: 'national_highway', distanceKm: 24.0, baseSpeedKmH: 70, trafficFactor: 1.10, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_bob_sal', from: 'BOBBILI', to: 'SALUR', roadName: 'SH34 Salur Link Road', roadType: 'state_highway', distanceKm: 18.0, baseSpeedKmH: 60, trafficFactor: 1.10, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_sal_ara', from: 'SALUR', to: 'ARAKU_VALLEY', roadName: 'Sunki Ghat Mountain Road', roadType: 'state_highway', distanceKm: 48.0, baseSpeedKmH: 40, trafficFactor: 1.05, riskScore: 4.8, roadCondition: 'fair', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_bob_par', from: 'BOBBILI', to: 'PARVATHIPURAM', roadName: 'NH26 Manyam District Highway', roadType: 'national_highway', distanceKm: 24.0, baseSpeedKmH: 70, trafficFactor: 1.12, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_bob_sal', from: 'BOBBILI', to: 'SALUR', roadName: 'SH34 Salur Link Road', roadType: 'state_highway', distanceKm: 18.0, baseSpeedKmH: 60, trafficFactor: 1.12, riskScore: 1.8, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_sal_ara', from: 'SALUR', to: 'ARAKU_VALLEY', roadName: 'Sunki Ghat Mountain Road', roadType: 'state_highway', distanceKm: 48.0, baseSpeedKmH: 45, trafficFactor: 1.12, riskScore: 4.8, roadCondition: 'fair', allowedVehicles: ALL_VEHICLES },
   { id: 'e_vzn_raj', from: 'VIZIANAGARAM', to: 'RAJAM', roadName: 'SH39 GMR Industrial Road', roadType: 'state_highway', distanceKm: 42.0, baseSpeedKmH: 65, trafficFactor: 1.15, riskScore: 2.1, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_raj_srk', from: 'RAJAM', to: 'SRIKAKULAM', roadName: 'SH39 Srikakulam Link', roadType: 'state_highway', distanceKm: 32.0, baseSpeedKmH: 60, trafficFactor: 1.15, riskScore: 2.0, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_srk_tek', from: 'SRIKAKULAM', to: 'TEKKALI', roadName: 'NH16 Tekkali Express Stretch', roadType: 'expressway', distanceKm: 46.0, baseSpeedKmH: 85, trafficFactor: 1.15, riskScore: 2.2, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
-  { id: 'e_tek_pal', from: 'TEKKALI', to: 'PALASA', roadName: 'NH16 Palasa Cashew Corridor', roadType: 'expressway', distanceKm: 26.0, baseSpeedKmH: 85, trafficFactor: 1.15, riskScore: 2.1, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_raj_srk', from: 'RAJAM', to: 'SRIKAKULAM', roadName: 'SH39 Srikakulam Link', roadType: 'state_highway', distanceKm: 32.0, baseSpeedKmH: 65, trafficFactor: 1.15, riskScore: 2.0, roadCondition: 'good', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_bho_srk', from: 'BHOGAPURAM', to: 'SRIKAKULAM', roadName: 'NH16 Bhogapuram-Srikakulam Expressway', roadType: 'expressway', distanceKm: 54.0, baseSpeedKmH: 88, trafficFactor: 1.14, riskScore: 1.8, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_srk_tek', from: 'SRIKAKULAM', to: 'TEKKALI', roadName: 'NH16 Tekkali Express Stretch', roadType: 'expressway', distanceKm: 46.0, baseSpeedKmH: 85, trafficFactor: 1.15, riskScore: 2.0, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
+  { id: 'e_tek_pal', from: 'TEKKALI', to: 'PALASA', roadName: 'NH16 Palasa Cashew Corridor', roadType: 'expressway', distanceKm: 26.0, baseSpeedKmH: 85, trafficFactor: 1.15, riskScore: 2.0, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
   { id: 'e_pal_som', from: 'PALASA', to: 'SOMPETA', roadName: 'NH16 Ichchapuram Border Corridor', roadType: 'expressway', distanceKm: 28.0, baseSpeedKmH: 85, trafficFactor: 1.15, riskScore: 2.0, roadCondition: 'excellent', allowedVehicles: ALL_VEHICLES },
 
   // ==========================================
   // SOUTH COASTAL AP CORRIDORS (NH16, NH216, NH71)
   // ==========================================
   { id: 'e_chi_ong', from: 'CHIRALA', to: 'ONGOLE', roadName: 'NH216 Coastal Highway to Ongole', roadType: 'national_highway', distanceKm: 46.0, baseSpeedKmH: 75, trafficFactor: 1.15, riskScore: 2, allowedVehicles: ALL_VEHICLES },
-  { id: 'e_ong_tan', from: 'ONGOLE', to: 'TANGUTUR', roadName: 'NH16 Tangutur Toll Plaza Stretch', roadType: 'expressway', distanceKm: 16.0, baseSpeedKmH: 90, trafficFactor: 1.10, riskScore: 1, allowedVehicles: ALL_VEHICLES },
-  { id: 'e_tan_sin', from: 'TANGUTUR', to: 'SINGARAYAKONDA', roadName: 'NH16 Varaha Shrine Stretch', roadType: 'expressway', distanceKm: 14.5, baseSpeedKmH: 90, trafficFactor: 1.10, riskScore: 1, allowedVehicles: ALL_VEHICLES },
-  { id: 'e_sin_kan', from: 'SINGARAYAKONDA', to: 'KANDUKUR', roadName: 'SH46 Kandukur Link', roadType: 'state_highway', distanceKm: 16.0, baseSpeedKmH: 60, trafficFactor: 1.15, riskScore: 2, allowedVehicles: ALL_VEHICLES },
-  { id: 'e_sin_ula', from: 'SINGARAYAKONDA', to: 'ULAVAPADU', roadName: 'NH16 Mango Belt Corridor', roadType: 'expressway', distanceKm: 18.0, baseSpeedKmH: 90, trafficFactor: 1.10, riskScore: 1, allowedVehicles: ALL_VEHICLES },
-  { id: 'e_ula_kav', from: 'ULAVAPADU', to: 'KAVALI', roadName: 'NH16 Kavali Tollway', roadType: 'expressway', distanceKm: 22.0, baseSpeedKmH: 90, trafficFactor: 1.15, riskScore: 2, allowedVehicles: ALL_VEHICLES },
-  { id: 'e_kav_nel', from: 'KAVALI', to: 'NELLORE', roadName: 'NH16 Penna Delta Highway', roadType: 'expressway', distanceKm: 56.0, baseSpeedKmH: 90, trafficFactor: 1.20, riskScore: 2, allowedVehicles: ALL_VEHICLES },
-  { id: 'e_ong_pod', from: 'ONGOLE', to: 'PODILI', roadName: 'SH39 Granite Highway', roadType: 'state_highway', distanceKm: 52.0, baseSpeedKmH: 65, trafficFactor: 1.10, riskScore: 2, allowedVehicles: ALL_VEHICLES },
-  { id: 'e_pod_mar', from: 'PODILI', to: 'MARKAPUR', roadName: 'SH39 Slate City Highway', roadType: 'state_highway', distanceKm: 38.0, baseSpeedKmH: 65, trafficFactor: 1.10, riskScore: 2, allowedVehicles: ALL_VEHICLES },
-  { id: 'e_pod_dar', from: 'PODILI', to: 'DARSI', roadName: 'Nagarjuna Canal Road', roadType: 'state_highway', distanceKm: 22.0, baseSpeedKmH: 60, trafficFactor: 1.10, riskScore: 2, allowedVehicles: ALL_VEHICLES },
-  { id: 'e_dar_vin', from: 'DARSI', to: 'VINUKONDA', roadName: 'SH31 Palnadu Link Road', roadType: 'state_highway', distanceKm: 34.0, baseSpeedKmH: 60, trafficFactor: 1.10, riskScore: 2, allowedVehicles: ALL_VEHICLES },
-  { id: 'e_mar_gid', from: 'MARKAPUR', to: 'GIDDALUR', roadName: 'SH30 Nallamala Foothill Highway', roadType: 'state_highway', distanceKm: 54.0, baseSpeedKmH: 60, trafficFactor: 1.05, riskScore: 3, allowedVehicles: ALL_VEHICLES },
-  { id: 'e_mar_sri', from: 'MARKAPUR', to: 'SRISAILAM', roadName: 'Nallamala Tiger Sanctuary Ghat Road', roadType: 'state_highway', distanceKm: 82.0, baseSpeedKmH: 45, trafficFactor: 1.05, riskScore: 4, allowedVehicles: ALL_VEHICLES },
+  { id: 'e_ong_tan', from: 'ONGOLE', to: 'TANGUTUR', roadName: 'NH16 Tangutur Toll Plaza Stretch', roadType: 'expressway', distanceKm: 16.0, baseSpeedKmH: 88, trafficFactor: 1.12, riskScore: 1, allowedVehicles: ALL_VEHICLES },
+  { id: 'e_tan_sin', from: 'TANGUTUR', to: 'SINGARAYAKONDA', roadName: 'NH16 Varaha Shrine Stretch', roadType: 'expressway', distanceKm: 14.5, baseSpeedKmH: 88, trafficFactor: 1.12, riskScore: 1, allowedVehicles: ALL_VEHICLES },
+  { id: 'e_tan_kan', from: 'TANGUTUR', to: 'KANDUKUR', roadName: 'Tangutur-Kandukur Bypass Road', roadType: 'state_highway', distanceKm: 21.0, baseSpeedKmH: 68, trafficFactor: 1.14, riskScore: 2, allowedVehicles: ALL_VEHICLES },
+  { id: 'e_sin_kan', from: 'SINGARAYAKONDA', to: 'KANDUKUR', roadName: 'SH46 Kandukur Link', roadType: 'state_highway', distanceKm: 16.0, baseSpeedKmH: 68, trafficFactor: 1.14, riskScore: 2, allowedVehicles: ALL_VEHICLES },
+  { id: 'e_kan_ula', from: 'KANDUKUR', to: 'ULAVAPADU', roadName: 'Kandukur-Ulavapadu Connector', roadType: 'state_highway', distanceKm: 18.0, baseSpeedKmH: 68, trafficFactor: 1.14, riskScore: 2, allowedVehicles: ALL_VEHICLES },
+  { id: 'e_kan_kav', from: 'KANDUKUR', to: 'KAVALI', roadName: 'Kandukur-Kavali State Highway', roadType: 'state_highway', distanceKm: 36.0, baseSpeedKmH: 68, trafficFactor: 1.15, riskScore: 2, allowedVehicles: ALL_VEHICLES },
+  { id: 'e_sin_ula', from: 'SINGARAYAKONDA', to: 'ULAVAPADU', roadName: 'NH16 Mango Belt Corridor', roadType: 'expressway', distanceKm: 18.0, baseSpeedKmH: 88, trafficFactor: 1.12, riskScore: 1, allowedVehicles: ALL_VEHICLES },
+  { id: 'e_ula_kav', from: 'ULAVAPADU', to: 'KAVALI', roadName: 'NH16 Kavali Tollway', roadType: 'expressway', distanceKm: 22.0, baseSpeedKmH: 88, trafficFactor: 1.14, riskScore: 2, allowedVehicles: ALL_VEHICLES },
+  { id: 'e_kav_kvr', from: 'KAVALI', to: 'KOVUR_NLR', roadName: 'NH16 Kavali-Kovur Expressway', roadType: 'expressway', distanceKm: 46.0, baseSpeedKmH: 88, trafficFactor: 1.14, riskScore: 2, allowedVehicles: ALL_VEHICLES },
+  { id: 'e_kvr_nel', from: 'KOVUR_NLR', to: 'NELLORE', roadName: 'NH16 Penna Bridge Approach', roadType: 'expressway', distanceKm: 9.5, baseSpeedKmH: 82, trafficFactor: 1.15, riskScore: 2, allowedVehicles: ALL_VEHICLES },
+  { id: 'e_kav_nel', from: 'KAVALI', to: 'NELLORE', roadName: 'NH16 Penna Delta Bypass', roadType: 'national_highway', distanceKm: 58.0, baseSpeedKmH: 76, trafficFactor: 1.18, riskScore: 2, allowedVehicles: ALL_VEHICLES },
+  { id: 'e_ong_pod', from: 'ONGOLE', to: 'PODILI', roadName: 'SH39 Granite Highway', roadType: 'state_highway', distanceKm: 52.0, baseSpeedKmH: 65, trafficFactor: 1.12, riskScore: 2, allowedVehicles: ALL_VEHICLES },
+  { id: 'e_pod_mar', from: 'PODILI', to: 'MARKAPUR', roadName: 'SH39 Slate City Highway', roadType: 'state_highway', distanceKm: 38.0, baseSpeedKmH: 65, trafficFactor: 1.12, riskScore: 2, allowedVehicles: ALL_VEHICLES },
+  { id: 'e_pod_dar', from: 'PODILI', to: 'DARSI', roadName: 'Nagarjuna Canal Road', roadType: 'state_highway', distanceKm: 22.0, baseSpeedKmH: 60, trafficFactor: 1.12, riskScore: 2, allowedVehicles: ALL_VEHICLES },
+  { id: 'e_dar_vin', from: 'DARSI', to: 'VINUKONDA', roadName: 'SH31 Palnadu Link Road', roadType: 'state_highway', distanceKm: 34.0, baseSpeedKmH: 60, trafficFactor: 1.12, riskScore: 2, allowedVehicles: ALL_VEHICLES },
+  { id: 'e_mar_gid', from: 'MARKAPUR', to: 'GIDDALUR', roadName: 'SH30 Nallamala Foothill Highway', roadType: 'state_highway', distanceKm: 54.0, baseSpeedKmH: 60, trafficFactor: 1.10, riskScore: 3, allowedVehicles: ALL_VEHICLES },
+  { id: 'e_mar_sri', from: 'MARKAPUR', to: 'SRISAILAM', roadName: 'Nallamala Tiger Sanctuary Ghat Road', roadType: 'state_highway', distanceKm: 82.0, baseSpeedKmH: 45, trafficFactor: 1.10, riskScore: 4, allowedVehicles: ALL_VEHICLES },
 
   // Nellore District & South AP Ports
-  { id: 'e_nel_kri', from: 'NELLORE', to: 'KRISHNAPATNAM', roadName: 'Krishnapatnam Port Dedicated Expressway', roadType: 'expressway', distanceKm: 24.0, baseSpeedKmH: 80, trafficFactor: 1.25, riskScore: 2, allowedVehicles: ALL_VEHICLES },
-  { id: 'e_nel_myp', from: 'NELLORE', to: 'MYPADU', roadName: 'Mypadu Beach Tourism Highway', roadType: 'state_highway', distanceKm: 22.0, baseSpeedKmH: 60, trafficFactor: 1.10, riskScore: 1, allowedVehicles: ALL_VEHICLES },
-  { id: 'e_nel_gud', from: 'NELLORE', to: 'GUDUR', roadName: 'NH16 Nellore-Gudur Expressway', roadType: 'expressway', distanceKm: 34.0, baseSpeedKmH: 85, trafficFactor: 1.20, riskScore: 2, allowedVehicles: ALL_VEHICLES },
-  { id: 'e_gud_nai', from: 'GUDUR', to: 'NAIDUPETA', roadName: 'NH16 Naidupeta SEZ Corridor', roadType: 'expressway', distanceKm: 28.0, baseSpeedKmH: 85, trafficFactor: 1.15, riskScore: 1, allowedVehicles: ALL_VEHICLES },
-  { id: 'e_nai_sul', from: 'NAIDUPETA', to: 'SULLURPETA', roadName: 'NH16 ISRO Spaceport Highway', roadType: 'expressway', distanceKm: 24.0, baseSpeedKmH: 90, trafficFactor: 1.15, riskScore: 1, allowedVehicles: ALL_VEHICLES },
-  { id: 'e_sul_tad', from: 'SULLURPETA', to: 'TADA', roadName: 'NH16 Sri City Industrial Express', roadType: 'expressway', distanceKm: 14.0, baseSpeedKmH: 90, trafficFactor: 1.25, riskScore: 2, allowedVehicles: ALL_VEHICLES },
-  { id: 'e_nai_srk', from: 'NAIDUPETA', to: 'SRIKALAHASTI', roadName: 'NH71 Srikalahasti Highway', roadType: 'national_highway', distanceKm: 32.0, baseSpeedKmH: 75, trafficFactor: 1.20, riskScore: 2, allowedVehicles: ALL_VEHICLES },
+  { id: 'e_nel_kri', from: 'NELLORE', to: 'KRISHNAPATNAM', roadName: 'Krishnapatnam Port Dedicated Expressway', roadType: 'expressway', distanceKm: 24.0, baseSpeedKmH: 80, trafficFactor: 1.18, riskScore: 2, allowedVehicles: ALL_VEHICLES },
+  { id: 'e_kri_gud', from: 'KRISHNAPATNAM', to: 'GUDUR', roadName: 'Krishnapatnam-Gudur Port Link Road', roadType: 'state_highway', distanceKm: 31.0, baseSpeedKmH: 68, trafficFactor: 1.15, riskScore: 2, allowedVehicles: ALL_VEHICLES },
+  { id: 'e_nel_myp', from: 'NELLORE', to: 'MYPADU', roadName: 'Mypadu Beach Tourism Highway', roadType: 'state_highway', distanceKm: 22.0, baseSpeedKmH: 60, trafficFactor: 1.12, riskScore: 1, allowedVehicles: ALL_VEHICLES },
+  { id: 'e_nel_gud', from: 'NELLORE', to: 'GUDUR', roadName: 'NH16 Nellore-Gudur Expressway', roadType: 'expressway', distanceKm: 34.0, baseSpeedKmH: 86, trafficFactor: 1.14, riskScore: 2, allowedVehicles: ALL_VEHICLES },
+  { id: 'e_gud_nai', from: 'GUDUR', to: 'NAIDUPETA', roadName: 'NH16 Naidupeta SEZ Corridor', roadType: 'expressway', distanceKm: 28.0, baseSpeedKmH: 86, trafficFactor: 1.14, riskScore: 1, allowedVehicles: ALL_VEHICLES },
+  { id: 'e_gud_srk', from: 'GUDUR', to: 'SRIKALAHASTI', roadName: 'Gudur-Venkatagiri-Srikalahasti Road', roadType: 'state_highway', distanceKm: 46.0, baseSpeedKmH: 68, trafficFactor: 1.15, riskScore: 2, allowedVehicles: ALL_VEHICLES },
+  { id: 'e_nai_sul', from: 'NAIDUPETA', to: 'SULLURPETA', roadName: 'NH16 ISRO Spaceport Highway', roadType: 'expressway', distanceKm: 24.0, baseSpeedKmH: 88, trafficFactor: 1.14, riskScore: 1, allowedVehicles: ALL_VEHICLES },
+  { id: 'e_sul_tad', from: 'SULLURPETA', to: 'TADA', roadName: 'NH16 Sri City Industrial Express', roadType: 'expressway', distanceKm: 14.0, baseSpeedKmH: 88, trafficFactor: 1.16, riskScore: 2, allowedVehicles: ALL_VEHICLES },
+  { id: 'e_nai_srk', from: 'NAIDUPETA', to: 'SRIKALAHASTI', roadName: 'NH71 Naidupeta-Srikalahasti Expressway', roadType: 'expressway', distanceKm: 26.0, baseSpeedKmH: 82, trafficFactor: 1.14, riskScore: 2, allowedVehicles: ALL_VEHICLES },
+  { id: 'e_srk_ren', from: 'SRIKALAHASTI', to: 'RENIGUNTA', roadName: 'NH71 Srikalahasti-Renigunta Airport Corridor', roadType: 'expressway', distanceKm: 24.0, baseSpeedKmH: 82, trafficFactor: 1.15, riskScore: 2, allowedVehicles: ALL_VEHICLES },
+  { id: 'e_ren_tir', from: 'RENIGUNTA', to: 'TIRUPATI', roadName: 'NH71 Renigunta-Tirupati Expressway', roadType: 'expressway', distanceKm: 12.0, baseSpeedKmH: 80, trafficFactor: 1.16, riskScore: 2, allowedVehicles: ALL_VEHICLES },
+  { id: 'e_sul_ren', from: 'SULLURPETA', to: 'RENIGUNTA', roadName: 'Sullurpeta-Satyavedu-Renigunta Road', roadType: 'state_highway', distanceKm: 56.0, baseSpeedKmH: 66, trafficFactor: 1.16, riskScore: 2, allowedVehicles: ALL_VEHICLES },
 
   // ==========================================
   // RAYALASEEMA HIGHWAY NETWORK (NH44, NH40, NH716, NH69, NH544D)
@@ -359,6 +475,7 @@ const RAW_EDGES: EdgeDef[] = [
   { id: 'e_chi_kan', from: 'CHITTOOR', to: 'KANIPAKAM', roadName: 'Vinayaka Shrine Road', roadType: 'state_highway', distanceKm: 12.5, baseSpeedKmH: 60, trafficFactor: 1.20, riskScore: 1, allowedVehicles: ALL_VEHICLES },
   { id: 'e_chi_pal', from: 'CHITTOOR', to: 'PALAMANER', roadName: 'NH69 Old Madras Highway', roadType: 'national_highway', distanceKm: 42.0, baseSpeedKmH: 75, trafficFactor: 1.20, riskScore: 2, allowedVehicles: ALL_VEHICLES },
   { id: 'e_pal_pun', from: 'PALAMANER', to: 'PUNGANUR', roadName: 'SH48 Punganur Cattle Hub Road', roadType: 'state_highway', distanceKm: 24.0, baseSpeedKmH: 65, trafficFactor: 1.10, riskScore: 2, allowedVehicles: ALL_VEHICLES },
+  { id: 'e_pal_kup', from: 'PALAMANER', to: 'KUPPAM', roadName: 'NH42 Palamaner-Kuppam Corridor', roadType: 'national_highway', distanceKm: 62.0, baseSpeedKmH: 70, trafficFactor: 1.12, riskScore: 2, allowedVehicles: ALL_VEHICLES },
   { id: 'e_pun_mad', from: 'PUNGANUR', to: 'MADANAPALLE', roadName: 'SH48 Madanapalle Link', roadType: 'state_highway', distanceKm: 26.0, baseSpeedKmH: 65, trafficFactor: 1.15, riskScore: 2, allowedVehicles: ALL_VEHICLES },
 
   // Natural Regional Connecting Links
@@ -490,8 +607,7 @@ export function buildCompleteRegionalGraph(): { vertices: GraphVertex[]; edges: 
     );
   });
 
-  // Ensure every village, town, and city has clean planar road connectivity (minimum 2 links)
-  // with Google-accurate road winding distances (1.28x curvature factor) and standard speeds
+  // Connect all village/town nodes (degree < 3) to their 3 nearest local neighbors as regional/rural roads
   const degreeMap = new Map<string, number>();
   edges.forEach(e => {
     degreeMap.set(e.from, (degreeMap.get(e.from) || 0) + 1);
@@ -499,61 +615,35 @@ export function buildCompleteRegionalGraph(): { vertices: GraphVertex[]; edges: 
 
   allVertices.forEach(v => {
     const currentDeg = degreeMap.get(v.id) || 0;
-    if (currentDeg < 2) {
+    if (currentDeg < 3) {
       const candidates: Array<{ node: GraphVertex; dist: number }> = [];
       allVertices.forEach(other => {
-        if (other.id !== v.id) {
+        if (other.id !== v.id && !edgeSet.has(`${v.id}__${other.id}`)) {
           const dHav = calculateHaversineKm(v.coords.lat, v.coords.lng, other.coords.lat, other.coords.lng);
-          if (dHav <= 45) {
-            candidates.push({ node: other, dist: dHav });
-          }
+          candidates.push({ node: other, dist: dHav });
         }
       });
       candidates.sort((a, b) => a.dist - b.dist);
 
-      const needed = Math.max(1, 2 - currentDeg);
+      const needed = Math.max(1, 3 - currentDeg);
       const toConnect = candidates.slice(0, needed);
       toConnect.forEach((c, idx) => {
-        const roadDistKm = Number(Math.max(1.5, c.dist * 1.28).toFixed(1));
-
-        let roadType: GraphEdge['roadType'] = 'rural';
-        let speedKmH = 40;
-        let congestion = 1.05;
-        let risk = 1.4;
-
-        if (roadDistKm >= 60) {
-          roadType = 'national_highway';
-          speedKmH = 75;
-          congestion = 1.12;
-          risk = 2.8;
-        } else if (roadDistKm >= 25) {
-          roadType = 'state_highway';
-          speedKmH = 62;
-          congestion = 1.10;
-          risk = 2.2;
-        } else if (roadDistKm >= 10) {
-          roadType = 'arterial';
-          speedKmH = 50;
-          congestion = 1.08;
-          risk = 1.8;
-        } else {
-          roadType = 'rural';
-          speedKmH = 40;
-          congestion = 1.05;
-          risk = 1.4;
-        }
-
+        const roadDistKm = Number(Math.max(2.0, c.dist * 1.25).toFixed(1));
+        const roadType = c.dist < 20 ? 'rural' : c.dist < 50 ? 'state_highway' : 'national_highway';
+        const baseSpeed = roadType === 'national_highway' ? 70 : roadType === 'state_highway' ? 62 : 52;
         addEdge(
           `vlink_${v.id}_${c.node.id}_${idx}`,
           v.id,
           c.node.id,
-          `${v.name} - ${c.node.name} Link`,
+          `${v.name} - ${c.node.name} Corridor`,
           roadType,
           roadDistKm,
-          speedKmH,
-          congestion,
-          risk
+          baseSpeed,
+          1.15,
+          1.8
         );
+        degreeMap.set(v.id, (degreeMap.get(v.id) || 0) + 1);
+        degreeMap.set(c.node.id, (degreeMap.get(c.node.id) || 0) + 1);
       });
     }
   });

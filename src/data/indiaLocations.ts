@@ -34,7 +34,7 @@ export const AP_REGIONS: APRegion[] = [
 
 export const INDIA_REGIONS = AP_REGIONS; // Backward-compatibility alias
 
-// Comprehensive database of all Andhra Pradesh cities, district headquarters, regional towns, and key villages
+// Comprehensive database of Andhra Pradesh cities, district headquarters, regional towns, and key villages covering all 26 districts
 export const AP_LOCATIONS: APLocation[] = [
   // ==========================================
   // 1. CAPITAL & CENTRAL AP (Krishna, Guntur, NTR, Amaravati, Palnadu, Bapatla)
@@ -58,6 +58,16 @@ export const AP_LOCATIONS: APLocation[] = [
   { id: 'MACHERLA', name: 'Macherla', district: 'Palnadu', region: 'Capital & Central AP', type: 'town', coords: { lat: 16.4806, lng: 79.2970 }, tag: 'Nagarjuna Sagar' },
   { id: 'VINUKONDA', name: 'Vinukonda', district: 'Palnadu', region: 'Capital & Central AP', type: 'town', coords: { lat: 16.0543, lng: 79.7423 }, tag: 'Junction Town' },
   { id: 'PIDUGURALLA', name: 'Piduguralla', district: 'Palnadu', region: 'Capital & Central AP', type: 'town', coords: { lat: 16.4820, lng: 79.8890 }, tag: 'Lime City' },
+  { id: 'NANDIGAMA', name: 'Nandigama', district: 'NTR', region: 'Capital & Central AP', type: 'town', coords: { lat: 16.7830, lng: 80.2970 }, tag: 'NH65 Corridor' },
+  { id: 'JAGGAIAHPETA', name: 'Jaggaiahpeta', district: 'NTR', region: 'Capital & Central AP', type: 'town', coords: { lat: 16.8920, lng: 80.0980 }, tag: 'Cement Industrial Hub' },
+  { id: 'TIRUVURU', name: 'Tiruvuru', district: 'NTR', region: 'Capital & Central AP', type: 'town', coords: { lat: 17.1120, lng: 80.6120 }, tag: 'Border Town' },
+  { id: 'MYLAVARAM', name: 'Mylavaram', district: 'NTR', region: 'Capital & Central AP', type: 'town', coords: { lat: 16.7620, lng: 80.6380 }, tag: 'Mango Belt' },
+  { id: 'KONDAPALLI', name: 'Kondapalli', district: 'NTR', region: 'Capital & Central AP', type: 'town', coords: { lat: 16.6180, lng: 80.5360 }, tag: 'Toys & Fort' },
+  { id: 'GURAZALA', name: 'Gurazala', district: 'Palnadu', region: 'Capital & Central AP', type: 'town', coords: { lat: 16.5810, lng: 79.5710 }, tag: 'Historical Fort Town' },
+  { id: 'DACHEPALLI', name: 'Dachepalli', district: 'Palnadu', region: 'Capital & Central AP', type: 'town', coords: { lat: 16.6020, lng: 79.7350 }, tag: 'Limestone Belt' },
+  { id: 'PONNUR', name: 'Ponnur', district: 'Guntur', region: 'Capital & Central AP', type: 'town', coords: { lat: 16.0710, lng: 80.5600 }, tag: 'Temple Town' },
+  { id: 'CHEBROLU', name: 'Chebrolu', district: 'Guntur', region: 'Capital & Central AP', type: 'town', coords: { lat: 16.2020, lng: 80.5310 }, tag: 'Chaturmukha Brahma' },
+  { id: 'PEDANA', name: 'Pedana', district: 'Krishna', region: 'Capital & Central AP', type: 'town', coords: { lat: 16.2620, lng: 81.1680 }, tag: 'Kalamkari Hub' },
 
   // Villages & Local Junctions
   { id: 'GANNAVARAM', name: 'Gannavaram', district: 'Krishna', region: 'Capital & Central AP', type: 'village', coords: { lat: 16.5400, lng: 80.8000 }, popular: true, tag: 'Airport Hub' },
@@ -76,9 +86,14 @@ export const AP_LOCATIONS: APLocation[] = [
   { id: 'AVANIGADDA', name: 'Avanigadda', district: 'Krishna', region: 'Capital & Central AP', type: 'village', coords: { lat: 16.0240, lng: 80.9200 }, tag: 'Diviseema Village' },
   { id: 'BHATTIPROLU', name: 'Bhattiprolu', district: 'Bapatla', region: 'Capital & Central AP', type: 'village', coords: { lat: 16.1020, lng: 80.7840 }, tag: 'Heritage Village' },
   { id: 'DUGGIRALA', name: 'Duggirala', district: 'Guntur', region: 'Capital & Central AP', type: 'village', coords: { lat: 16.3260, lng: 80.6270 }, tag: 'Turmeric Yard' },
-  { id: 'PONNUR', name: 'Ponnur', district: 'Guntur', region: 'Capital & Central AP', type: 'village', coords: { lat: 16.0710, lng: 80.5600 }, tag: 'Temple Village' },
   { id: 'KOTAPPAKONDA', name: 'Kotappakonda', district: 'Palnadu', region: 'Capital & Central AP', type: 'village', coords: { lat: 16.1450, lng: 80.0380 }, tag: 'Hill Shrine' },
   { id: 'AGIRIPALLI', name: 'Agiripalli', district: 'Eluru', region: 'Capital & Central AP', type: 'village', coords: { lat: 16.6710, lng: 80.7930 }, tag: 'Temple Village' },
+  { id: 'KANCHIKACHERLA', name: 'Kanchikacherla', district: 'NTR', region: 'Capital & Central AP', type: 'village', coords: { lat: 16.7020, lng: 80.3950 }, tag: 'NH65 Highway Village' },
+  { id: 'NAGAYALANKA', name: 'Nagayalanka', district: 'Krishna', region: 'Capital & Central AP', type: 'village', coords: { lat: 15.9450, lng: 80.9150 }, tag: 'Lighthouse & Confluence' },
+  { id: 'MOVVA', name: 'Movva', district: 'Krishna', region: 'Capital & Central AP', type: 'village', coords: { lat: 16.2350, lng: 80.9850 }, tag: 'Kshetriyya Heritage' },
+  { id: 'BANTUMILLI', name: 'Bantumilli', district: 'Krishna', region: 'Capital & Central AP', type: 'village', coords: { lat: 16.3680, lng: 81.2850 }, tag: 'Coastal Village' },
+  { id: 'NIZAMPATNAM', name: 'Nizampatnam', district: 'Bapatla', region: 'Capital & Central AP', type: 'village', coords: { lat: 15.9120, lng: 80.6650 }, tag: 'Fishing Harbour' },
+  { id: 'KARAMCHEDU', name: 'Karamchedu', district: 'Bapatla', region: 'Capital & Central AP', type: 'village', coords: { lat: 15.8950, lng: 80.2650 }, tag: 'Delta Village' },
 
   // ==========================================
   // 2. NORTH COASTAL AP / UTTARANDHRA (Visakhapatnam, Vizianagaram, Srikakulam, Anakapalli, ASR, Parvathipuram)
@@ -98,10 +113,17 @@ export const AP_LOCATIONS: APLocation[] = [
   { id: 'RAJAM', name: 'Rajam', district: 'Vizianagaram', region: 'North Coastal (Uttarandhra)', type: 'town', coords: { lat: 18.4550, lng: 83.6550 }, tag: 'Industrial Town' },
   { id: 'TEKKALI', name: 'Tekkali', district: 'Srikakulam', region: 'North Coastal (Uttarandhra)', type: 'town', coords: { lat: 18.6186, lng: 84.2372 }, tag: 'Highway Town' },
   { id: 'SOMPETA', name: 'Sompeta', district: 'Srikakulam', region: 'North Coastal (Uttarandhra)', type: 'town', coords: { lat: 18.9320, lng: 84.5930 }, tag: 'Coastal Town' },
+  { id: 'ICHCHAPURAM', name: 'Ichchapuram', district: 'Srikakulam', region: 'North Coastal (Uttarandhra)', type: 'town', coords: { lat: 19.1120, lng: 84.6920 }, tag: 'Northern Border Town' },
+  { id: 'AMADALAVALASA', name: 'Amadalavalasa', district: 'Srikakulam', region: 'North Coastal (Uttarandhra)', type: 'town', coords: { lat: 18.4120, lng: 83.8950 }, tag: 'Railway Junction' },
+  { id: 'NARASANNAPETA', name: 'Narasannapeta', district: 'Srikakulam', region: 'North Coastal (Uttarandhra)', type: 'town', coords: { lat: 18.4210, lng: 84.0480 }, tag: 'NH16 Market Town' },
+  { id: 'PALAKONDA', name: 'Palakonda', district: 'Parvathipuram Manyam', region: 'North Coastal (Uttarandhra)', type: 'town', coords: { lat: 18.6010, lng: 83.7540 }, tag: 'Agency Foothills' },
   { id: 'ARAKU_VALLEY', name: 'Araku Valley', district: 'Alluri Sitharama Raju', region: 'North Coastal (Uttarandhra)', type: 'town', coords: { lat: 18.3273, lng: 82.8775 }, popular: true, tag: 'Hill Station & Coffee' },
   { id: 'PADERU', name: 'Paderu', district: 'Alluri Sitharama Raju', region: 'North Coastal (Uttarandhra)', type: 'town', coords: { lat: 18.0833, lng: 82.6667 }, tag: 'Agency District HQ' },
   { id: 'SALUR', name: 'Salur', district: 'Parvathipuram Manyam', region: 'North Coastal (Uttarandhra)', type: 'town', coords: { lat: 18.5280, lng: 83.2120 }, tag: 'Ghats Gateway' },
   { id: 'YELAMANCHILI', name: 'Yelamanchili', district: 'Anakapalli', region: 'North Coastal (Uttarandhra)', type: 'town', coords: { lat: 17.5500, lng: 82.8600 }, tag: 'Highway Town' },
+  { id: 'CHODAVARAM', name: 'Chodavaram', district: 'Anakapalli', region: 'North Coastal (Uttarandhra)', type: 'town', coords: { lat: 17.8300, lng: 82.9400 }, tag: 'Sugar & Agro Town' },
+  { id: 'SRUNGAVARAPUKOTA', name: 'S.Kota (Srungavarapukota)', district: 'Vizianagaram', region: 'North Coastal (Uttarandhra)', type: 'town', coords: { lat: 18.1150, lng: 83.1500 }, tag: 'Ghats Entrance' },
+  { id: 'KOTHAVALASA', name: 'Kothavalasa', district: 'Vizianagaram', region: 'North Coastal (Uttarandhra)', type: 'town', coords: { lat: 17.9020, lng: 83.1950 }, tag: 'Railway Junction' },
 
   // Villages & Scenic Hubs
   { id: 'ANNAVARAM', name: 'Annavaram', district: 'Kakinada', region: 'North Coastal (Uttarandhra)', type: 'village', coords: { lat: 17.2790, lng: 82.4040 }, popular: true, tag: 'Holy Hill Shrine' },
@@ -110,6 +132,12 @@ export const AP_LOCATIONS: APLocation[] = [
   { id: 'NARSIPATNAM', name: 'Narsipatnam', district: 'Anakapalli', region: 'North Coastal (Uttarandhra)', type: 'village', coords: { lat: 17.6710, lng: 82.6120 }, tag: 'Agency Gateway' },
   { id: 'GAJUWAKA', name: 'Gajuwaka (Steel Plant)', district: 'Visakhapatnam', region: 'North Coastal (Uttarandhra)', type: 'village', coords: { lat: 17.6950, lng: 83.1970 }, tag: 'Industrial Corridor' },
   { id: 'SIMHACHALAM', name: 'Simhachalam', district: 'Visakhapatnam', region: 'North Coastal (Uttarandhra)', type: 'village', coords: { lat: 17.7660, lng: 83.2500 }, tag: 'Narasimha Swamy' },
+  { id: 'LAMBASINGI', name: 'Lambasingi', district: 'Alluri Sitharama Raju', region: 'North Coastal (Uttarandhra)', type: 'village', coords: { lat: 17.8250, lng: 82.5020 }, popular: true, tag: 'Kashmir of Andhra' },
+  { id: 'BORRA_CAVES', name: 'Borra Caves', district: 'Alluri Sitharama Raju', region: 'North Coastal (Uttarandhra)', type: 'village', coords: { lat: 18.2830, lng: 83.0420 }, popular: true, tag: 'Million-Year Caves' },
+  { id: 'CHINTAPALLI', name: 'Chintapalli', district: 'Alluri Sitharama Raju', region: 'North Coastal (Uttarandhra)', type: 'village', coords: { lat: 17.8720, lng: 82.3550 }, tag: 'Forest Reserve' },
+  { id: 'KALINGAPATNAM', name: 'Kalingapatnam', district: 'Srikakulam', region: 'North Coastal (Uttarandhra)', type: 'village', coords: { lat: 18.3410, lng: 84.1280 }, tag: 'Ancient Lighthouse Beach' },
+  { id: 'PONDURU', name: 'Ponduru', district: 'Srikakulam', region: 'North Coastal (Uttarandhra)', type: 'village', coords: { lat: 18.3610, lng: 83.7650 }, tag: 'Khadi Village' },
+  { id: 'ACHUTAPURAM', name: 'Achutapuram (SEZ)', district: 'Anakapalli', region: 'North Coastal (Uttarandhra)', type: 'village', coords: { lat: 17.5120, lng: 82.9850 }, tag: 'Special Economic Zone' },
 
   // ==========================================
   // 3. GODAVARI DELTA (East Godavari, West Godavari, Kakinada, Konaseema, Eluru)
@@ -133,6 +161,12 @@ export const AP_LOCATIONS: APLocation[] = [
   { id: 'RAMACHANDRAPURAM', name: 'Ramachandrapuram', district: 'Konaseema', region: 'Godavari Delta', type: 'town', coords: { lat: 16.8520, lng: 82.0230 }, tag: 'Sugar Town' },
   { id: 'PEDDAPURAM', name: 'Peddapuram', district: 'Kakinada', region: 'Godavari Delta', type: 'town', coords: { lat: 17.0780, lng: 82.1380 }, tag: 'Silk & Sago Town' },
   { id: 'SAMALKOTA', name: 'Samalkota', district: 'Kakinada', region: 'Godavari Delta', type: 'town', coords: { lat: 17.0490, lng: 82.1670 }, tag: 'Kumararama Temple' },
+  { id: 'PITHAPURAM', name: 'Pithapuram', district: 'Kakinada', region: 'Godavari Delta', type: 'town', coords: { lat: 17.1160, lng: 82.2530 }, tag: 'Padagaya Kshetram' },
+  { id: 'RAZOLE', name: 'Razole', district: 'Konaseema', region: 'Godavari Delta', type: 'town', coords: { lat: 16.4850, lng: 81.8320 }, tag: 'Coconut Capital' },
+  { id: 'CHINTALAPUDI', name: 'Chintalapudi', district: 'Eluru', region: 'Godavari Delta', type: 'town', coords: { lat: 17.0620, lng: 80.9950 }, tag: 'Border Agricultural Town' },
+  { id: 'POLAVARAM', name: 'Polavaram', district: 'Eluru', region: 'Godavari Delta', type: 'town', coords: { lat: 17.2510, lng: 81.6420 }, popular: true, tag: 'National Irrigation Project' },
+  { id: 'RAMPACHODAVARAM', name: 'Rampachodavaram', district: 'Alluri Sitharama Raju', region: 'Godavari Delta', type: 'town', coords: { lat: 17.4420, lng: 81.7760 }, tag: 'Agency Waterfalls' },
+  { id: 'MAREDUMILLI', name: 'Maredumilli', district: 'Alluri Sitharama Raju', region: 'Godavari Delta', type: 'town', coords: { lat: 17.5920, lng: 81.7120 }, popular: true, tag: 'Eco-Tourism & Dense Woods' },
 
   // Villages & Delta Beauties
   { id: 'UPPADA', name: 'Uppada', district: 'Kakinada', region: 'Godavari Delta', type: 'village', coords: { lat: 17.0850, lng: 82.3270 }, tag: 'Jamdani Silk Beach' },
@@ -142,6 +176,9 @@ export const AP_LOCATIONS: APLocation[] = [
   { id: 'PATTISEEMA', name: 'Pattiseema', district: 'East Godavari', region: 'Godavari Delta', type: 'village', coords: { lat: 17.3820, lng: 81.6020 }, tag: 'River Link Project' },
   { id: 'DINDI', name: 'Dindi', district: 'Konaseema', region: 'Godavari Delta', type: 'village', coords: { lat: 16.4250, lng: 81.8750 }, tag: 'Backwater Resort' },
   { id: 'RYALI', name: 'Ryali', district: 'Konaseema', region: 'Godavari Delta', type: 'village', coords: { lat: 16.7880, lng: 81.8750 }, tag: 'Jagan Mohini Shrine' },
+  { id: 'KADIAM', name: 'Kadiam', district: 'East Godavari', region: 'Godavari Delta', type: 'village', coords: { lat: 16.9210, lng: 81.8350 }, tag: 'Famous Plant Nurseries' },
+  { id: 'MUMMIDIVARAM', name: 'Mummidivaram', district: 'Konaseema', region: 'Godavari Delta', type: 'village', coords: { lat: 16.6450, lng: 82.1150 }, tag: 'Balayogi Shrine' },
+  { id: 'ATTILI', name: 'Attili', district: 'West Godavari', region: 'Godavari Delta', type: 'village', coords: { lat: 16.6920, lng: 81.5950 }, tag: 'Delta Paddy Village' },
 
   // ==========================================
   // 4. SOUTH COASTAL AP (Prakasam, SPSR Nellore)
@@ -163,6 +200,11 @@ export const AP_LOCATIONS: APLocation[] = [
   { id: 'DARSI', name: 'Darsi', district: 'Prakasam', region: 'South Coastal AP', type: 'town', coords: { lat: 15.7720, lng: 79.6830 }, tag: 'Canal Town' },
   { id: 'ATMAKUR_NLR', name: 'Atmakur (Nellore)', district: 'SPSR Nellore', region: 'South Coastal AP', type: 'town', coords: { lat: 14.6180, lng: 79.6230 }, tag: 'Penna Basin' },
   { id: 'VENKATAGIRI', name: 'Venkatagiri', district: 'Tirupati', region: 'South Coastal AP', type: 'town', coords: { lat: 13.9620, lng: 79.5810 }, tag: 'Royal Saree Hub' },
+  { id: 'KANIGIRI', name: 'Kanigiri', district: 'Prakasam', region: 'South Coastal AP', type: 'town', coords: { lat: 15.4010, lng: 79.5120 }, tag: 'Western Prakasam Hub' },
+  { id: 'CHIMAKURTHY', name: 'Chimakurthy', district: 'Prakasam', region: 'South Coastal AP', type: 'town', coords: { lat: 15.5820, lng: 79.8650 }, tag: 'Galaxy Granite Capital' },
+  { id: 'ADDANKI', name: 'Addanki', district: 'Bapatla', region: 'South Coastal AP', type: 'town', coords: { lat: 15.8110, lng: 79.9730 }, tag: 'Gundlakamma River Town' },
+  { id: 'MARTUR', name: 'Martur', district: 'Bapatla', region: 'South Coastal AP', type: 'town', coords: { lat: 15.9780, lng: 80.0950 }, tag: 'NH16 Granite Market' },
+  { id: 'BUCHIREDDYPALEM', name: 'Buchireddypalem', district: 'SPSR Nellore', region: 'South Coastal AP', type: 'town', coords: { lat: 14.5320, lng: 79.8750 }, tag: 'Jonnavada Shrine Gateway' },
 
   // Villages & Ports
   { id: 'KRISHNAPATNAM', name: 'Krishnapatnam Port', district: 'SPSR Nellore', region: 'South Coastal AP', type: 'village', coords: { lat: 14.2830, lng: 80.1250 }, popular: true, tag: 'Mega Deep Sea Port' },
@@ -171,6 +213,9 @@ export const AP_LOCATIONS: APLocation[] = [
   { id: 'TANGUTUR', name: 'Tangutur', district: 'Prakasam', region: 'South Coastal AP', type: 'village', coords: { lat: 15.3850, lng: 80.0350 }, tag: 'Highway Village' },
   { id: 'ULAVAPADU', name: 'Ulavapadu', district: 'SPSR Nellore', region: 'South Coastal AP', type: 'village', coords: { lat: 15.0830, lng: 80.0050 }, tag: 'Banganapalle Mangoes' },
   { id: 'TADA', name: 'Tada (Sri City)', district: 'Tirupati', region: 'South Coastal AP', type: 'village', coords: { lat: 13.5900, lng: 80.0300 }, tag: 'Sri City Industrial City' },
+  { id: 'CUMBUM', name: 'Cumbum', district: 'Prakasam', region: 'South Coastal AP', type: 'village', coords: { lat: 15.5720, lng: 79.1120 }, tag: 'Historic Man-Made Lake' },
+  { id: 'YERRAGONDAPALEM', name: 'Yerragondapalem', district: 'Prakasam', region: 'South Coastal AP', type: 'village', coords: { lat: 16.0350, lng: 79.3050 }, tag: 'Nallamala Border' },
+  { id: 'PAMURU', name: 'Pamuru', district: 'Prakasam', region: 'South Coastal AP', type: 'village', coords: { lat: 15.0950, lng: 79.4120 }, tag: 'Southern Prakasam Hub' },
 
   // ==========================================
   // 5. RAYALASEEMA (Kurnool, Nandyal, Ananthapuramu, SSS, Kadapa, Annamayya, Tirupati, Chittoor)
@@ -203,9 +248,21 @@ export const AP_LOCATIONS: APLocation[] = [
   { id: 'JAMMALAMADUGU', name: 'Jammalamadugu', district: 'YSR Kadapa', region: 'Rayalaseema', type: 'town', coords: { lat: 14.8330, lng: 78.3830 }, tag: 'Penna Gorge Town' },
   { id: 'PUNGANUR', name: 'Punganur', district: 'Chittoor', region: 'Rayalaseema', type: 'town', coords: { lat: 13.3670, lng: 78.5830 }, tag: 'Miniature Cow Hub' },
   { id: 'PALAMANER', name: 'Palamaner', district: 'Chittoor', region: 'Rayalaseema', type: 'town', coords: { lat: 13.2000, lng: 78.7500 }, tag: 'Koundinya Sanctuary' },
-  { id: 'NAGARI', name: 'Nagari', district: 'Chittoor', region: 'Rayalaseema', type: 'town', coords: { lat: 13.3300, lng: 79.5830 }, tag: 'Powerloom City' },
+  { id: 'NAGARI', name: 'Nagari', district: 'Chittoor / Tirupati', region: 'Rayalaseema', type: 'town', coords: { lat: 13.3300, lng: 79.5830 }, tag: 'Powerloom City' },
   { id: 'KUPPAM', name: 'Kuppam', district: 'Chittoor', region: 'Rayalaseema', type: 'town', coords: { lat: 12.7500, lng: 78.3670 }, tag: 'Tri-State Border' },
   { id: 'SRISAILAM', name: 'Srisailam', district: 'Nandyal', region: 'Rayalaseema', type: 'town', coords: { lat: 16.0730, lng: 78.8680 }, popular: true, tag: 'Mallikarjuna Jyotirlinga' },
+  { id: 'GOOTY', name: 'Gooty', district: 'Ananthapuramu', region: 'Rayalaseema', type: 'town', coords: { lat: 15.1120, lng: 77.6350 }, tag: 'Hill Fort Junction' },
+  { id: 'URAVAKONDA', name: 'Uravakonda', district: 'Ananthapuramu', region: 'Rayalaseema', type: 'town', coords: { lat: 14.9450, lng: 77.2650 }, tag: 'Handloom & Agri Town' },
+  { id: 'KALYANDURG', name: 'Kalyandurg', district: 'Ananthapuramu', region: 'Rayalaseema', type: 'town', coords: { lat: 14.5520, lng: 77.1080 }, tag: 'Silk & Agriculture' },
+  { id: 'RAYADURG', name: 'Rayadurg', district: 'Ananthapuramu', region: 'Rayalaseema', type: 'town', coords: { lat: 14.7010, lng: 76.8620 }, tag: 'Textiles & Hill Fort' },
+  { id: 'PENUKONDA', name: 'Penukonda', district: 'Sri Sathya Sai', region: 'Rayalaseema', type: 'town', coords: { lat: 14.0830, lng: 77.5950 }, popular: true, tag: 'Kia Motors Industrial Hub' },
+  { id: 'RAJAMPET', name: 'Rajampet', district: 'Annamayya', region: 'Rayalaseema', type: 'town', coords: { lat: 14.1950, lng: 79.1620 }, tag: 'Cheyyeru River Town' },
+  { id: 'RAILWAY_KODUR', name: 'Railway Kodur', district: 'Annamayya', region: 'Rayalaseema', type: 'town', coords: { lat: 13.9520, lng: 79.3550 }, tag: 'Banana & Papaya Hub' },
+  { id: 'PILERU', name: 'Pileru', district: 'Annamayya', region: 'Rayalaseema', type: 'town', coords: { lat: 13.6520, lng: 78.9350 }, tag: 'Junction Town' },
+  { id: 'MYDUKUR', name: 'Mydukur', district: 'YSR Kadapa', region: 'Rayalaseema', type: 'town', coords: { lat: 14.7120, lng: 78.7180 }, tag: 'NH40/NH67 Crossroads' },
+  { id: 'YERRAGUNTLA', name: 'Yerraguntla', district: 'YSR Kadapa', region: 'Rayalaseema', type: 'town', coords: { lat: 14.6350, lng: 78.5350 }, tag: 'Cement Railway Hub' },
+  { id: 'NANDIKOTKUR', name: 'Nandikotkur', district: 'Nandyal', region: 'Rayalaseema', type: 'town', coords: { lat: 15.8650, lng: 78.2650 }, tag: 'Krishna River Basin' },
+  { id: 'MANTRALAYAM', name: 'Mantralayam', district: 'Kurnool', region: 'Rayalaseema', type: 'town', coords: { lat: 15.9350, lng: 77.4280 }, popular: true, tag: 'Sri Raghavendra Swamy Math' },
 
   // Villages & Heritage Wonders
   { id: 'LEPAKSHI', name: 'Lepakshi', district: 'Sri Sathya Sai', region: 'Rayalaseema', type: 'village', coords: { lat: 13.8040, lng: 77.6080 }, popular: true, tag: 'Monolithic Nandi' },
@@ -218,6 +275,11 @@ export const AP_LOCATIONS: APLocation[] = [
   { id: 'TIRUMALA', name: 'Tirumala Hills', district: 'Tirupati', region: 'Rayalaseema', type: 'village', coords: { lat: 13.6830, lng: 79.3500 }, popular: true, tag: 'Sacred Seven Hills' },
   { id: 'KANIPAKAM', name: 'Kanipakam', district: 'Chittoor', region: 'Rayalaseema', type: 'village', coords: { lat: 13.2660, lng: 79.0330 }, popular: true, tag: 'Varasiddhi Vinayaka' },
   { id: 'ALIPIRI', name: 'Alipiri Foot', district: 'Tirupati', region: 'Rayalaseema', type: 'village', coords: { lat: 13.6490, lng: 79.3980 }, tag: 'Tirumala Gateway' },
+  { id: 'CHANDRAGIRI', name: 'Chandragiri', district: 'Tirupati', region: 'Rayalaseema', type: 'village', coords: { lat: 13.5820, lng: 79.3150 }, tag: 'Historic Vijayanagara Fort' },
+  { id: 'PUTTUR', name: 'Puttur', district: 'Tirupati', region: 'Rayalaseema', type: 'village', coords: { lat: 13.4450, lng: 79.5520 }, tag: 'Kailasakona Gateway' },
+  { id: 'HORSLEY_HILLS', name: 'Horsley Hills', district: 'Annamayya', region: 'Rayalaseema', type: 'village', coords: { lat: 13.6550, lng: 78.3980 }, popular: true, tag: 'Andhra Ooty' },
+  { id: 'BELUM_CAVES', name: 'Belum Caves', district: 'Nandyal', region: 'Rayalaseema', type: 'village', coords: { lat: 15.1020, lng: 78.1120 }, popular: true, tag: 'Subterranean Wonders' },
+  { id: 'BETHAMCHERLA', name: 'Bethamcherla', district: 'Nandyal', region: 'Rayalaseema', type: 'village', coords: { lat: 15.4520, lng: 78.1620 }, tag: 'Polished Slab Stone' },
 ];
 
 export interface ResolvedNearbyGraphResult {
@@ -257,7 +319,7 @@ export function calculateHaversineKm(
 export function searchAPLocations(
   query: string,
   regionFilter: APRegion = 'All Andhra Pradesh',
-  limit = 20
+  limit = 25
 ): APLocation[] {
   const q = query.trim().toLowerCase();
 

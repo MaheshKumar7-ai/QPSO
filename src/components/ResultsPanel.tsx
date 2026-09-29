@@ -84,65 +84,35 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({
             Dynamic multi-objective evaluation based on QPSO optimization
           </p>
         </div>
-        {optimizationMode === 'safer' ? (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 animate-pulse">
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            Safer Path Active
-          </span>
-        ) : optimizationMode === 'fastest' ? (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800 border border-indigo-300">
-            <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
-            Fastest Path Active
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-300">
-            <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-            Balanced Path Active
-          </span>
-        )}
+        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-900 border border-blue-300">
+          <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
+          Traffic-Optimized Active
+        </span>
       </div>
 
-      {/* Mode Selection Cards */}
-      <div className="space-y-2.5">
+      {/* Traffic Congestion Optimization Objective Card */}
+      <div className="space-y-2">
         <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
           Optimization Objective
         </label>
-        <div className="grid grid-cols-1 gap-2">
-          {modes.map((m) => {
-            const isSelected = optimizationMode === m.id;
-            return (
-              <button
-                key={m.id}
-                type="button"
-                onClick={() => onSelectMode(m.id)}
-                className={`w-full text-left p-2.5 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
-                  isSelected
-                    ? `${m.activeBorder} ${m.activeBg}`
-                    : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/60 bg-white'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    {m.icon}
-                    <span className={`text-xs font-black uppercase tracking-wide ${isSelected ? m.textColor : 'text-slate-700'}`}>
-                      {m.title}
-                    </span>
-                  </div>
-                  <span className={`text-[10px] font-medium px-2 py-0.5 rounded-md ${
-                    isSelected ? 'bg-white/80 font-bold ' + m.textColor : 'bg-slate-100 text-slate-600'
-                  }`}>
-                    {m.badge}
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-600 mt-1">
-                  {m.description}
-                </p>
-                <div className="text-[10px] text-slate-500 mt-1 font-mono">
-                  {m.weightsSummary}
-                </div>
-              </button>
-            );
-          })}
+        <div className="p-3.5 rounded-xl border border-blue-300 bg-blue-50/80 shadow-xs space-y-1.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Zap className="w-4 h-4 text-blue-700" />
+              <span className="text-xs font-black uppercase tracking-wide text-blue-950">
+                Traffic Congestion Optimized Route
+              </span>
+            </div>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-200 text-blue-900">
+              Min Traffic Delay
+            </span>
+          </div>
+          <p className="text-[11px] text-blue-900 font-medium">
+            Route selected by dynamic traffic flow analysis, avoiding bottleneck congestion, slow bottlenecks, and incident delays.
+          </p>
+          <div className="text-[10px] text-blue-800 font-mono pt-0.5">
+            Travel Time: 45% • Congestion Flow: 40% • Distance: 10% • Risk: 5%
+          </div>
         </div>
       </div>
 
@@ -249,22 +219,7 @@ export const ResultsPanel: React.FC<ResultsPanelProps> = ({
           </div>
 
           <p className="text-[11px] text-slate-600 leading-relaxed">
-            {optimizationMode === 'safer' ? (
-              <>
-                The <strong className="text-emerald-700">Safer route</strong> avoids high-risk accident blackspots (e.g. NH16 coastal stretch) and congested bottlenecks, trading a small distance addition (+{(activeRoute.totalDistanceKm - shortestRoute.totalDistanceKm).toFixed(1)} km) for a{' '}
-                <strong className="text-emerald-700">
-                  {((1 - activeRoute.riskCost / Math.max(1, shortestRoute.riskCost)) * 100).toFixed(0)}% reduction in accident risk
-                </strong>.
-              </>
-            ) : optimizationMode === 'fastest' ? (
-              <>
-                The <strong className="text-indigo-700">Fastest route</strong> prioritizes high-speed expressways and low-delay corridors, minimizing estimated travel time to {formatDurationHuman(activeRoute.totalTimeMin)}.
-              </>
-            ) : (
-              <>
-                The <strong className="text-blue-700">Balanced route</strong> strikes an equilibrium between travel time, distance, congestion, and safety risks.
-              </>
-            )}
+            The <strong className="text-blue-700">Traffic Congestion Optimized route</strong> dynamically bypasses heavily bottlenecked corridors and incident delays, ensuring minimal travel time ({formatDurationHuman(activeRoute.totalTimeMin)}) with smooth traffic flow.
           </p>
         </div>
       )}

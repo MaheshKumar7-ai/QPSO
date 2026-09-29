@@ -64,6 +64,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
           maxZoom: 19,
           maxBounds: AP_BOUNDS, // Restricts panning strictly to Andhra Pradesh region
           maxBoundsViscosity: 0.8,
+          preferCanvas: true, // Ultra-fast hardware accelerated canvas renderer for smooth panning & zooming
           zoomControl: false, // We render dedicated high-contrast on-screen controls
           scrollWheelZoom: true,
           touchZoom: true,
@@ -73,18 +74,20 @@ export const MapComponent: React.FC<MapComponentProps> = ({
           attributionControl: true,
         });
 
-        // High resolution standard OpenStreetMap tile layer for full street, avenue & locality level detail
-        const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        // High resolution Esri World Street Map tile layer (100% free, keyless, fast)
+        const tileLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+          attribution: '&copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ',
           maxZoom: 19,
           maxNativeZoom: 19,
         }).addTo(map);
 
         baseTileLayerRef.current = tileLayer;
 
-        map.on('zoomend', () => {
-          setCurrentZoom(map.getZoom());
-        });
+        setTimeout(() => {
+          if (mapInstanceRef.current) {
+            mapInstanceRef.current.invalidateSize();
+          }
+        }, 100);
 
         map.on('movestart', (e: any) => {
           // If moved by user interaction
@@ -127,22 +130,31 @@ export const MapComponent: React.FC<MapComponentProps> = ({
       map.removeLayer(baseTileLayerRef.current);
     }
 
-    let url = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-    let attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+    let url = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';
+    let attribution = '&copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ';
+    let subdomains = 'abc';
 
     if (baseMapStyle === 'terrain') {
-      url = 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
-      attribution = 'Map data: &copy; OpenStreetMap contributors, SRTM | Map style: &copy; OpenTopoMap';
+      url = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}';
+      attribution = '&copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap';
+      subdomains = 'abc';
     } else if (baseMapStyle === 'satellite') {
       url = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-      attribution = 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community';
+      attribution = '&copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS';
+      subdomains = 'abc';
     } else if (baseMapStyle === 'voyager') {
-      url = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
-      attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
+      url = 'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png';
+      attribution = '&copy; OpenStreetMap contributors &copy; CARTO';
+      subdomains = 'abcd';
+    } else if (baseMapStyle === 'osm') {
+      url = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}';
+      attribution = '&copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ';
+      subdomains = 'abc';
     }
 
     const newLayer = L.tileLayer(url, {
       attribution,
+      subdomains,
       maxZoom: 19,
       maxNativeZoom: 19,
     }).addTo(map);
@@ -369,53 +381,32 @@ export const MapComponent: React.FC<MapComponentProps> = ({
       }
     });
 
-    // 1.5 Draw Baseline Shortest Geometric Path with condition-based color coding
-    // Neutral dark underlay with segment-specific condition strokes (Yellow = Moderate Congestion, Orange = High Congestion, Red = High Risk)
-    if (shortestRoute && shortestRoute.segments.length > 0) {
-      // First, draw a continuous neutral/dark underlay for the entire shortest path
-      const allShortestLatLngs: L.LatLngExpression[] = [];
-      shortestRoute.segments.forEach(segment => {
-        segment.edge.geometry.forEach(p => {
-          allShortestLatLngs.push([p.lat, p.lng]);
-          bounds.extend([p.lat, p.lng]);
+    // 1b. Draw Initial Route Before Incident (when dynamic reroute is active)
+    if (dynamicReroute?.isActive && dynamicReroute.beforeRoute?.segments) {
+      dynamicReroute.beforeRoute.segments.forEach(seg => {
+        const geom: L.LatLngExpression[] = seg.edge.geometry.map(p => [p.lat, p.lng]);
+        geom.forEach(ll => bounds.extend(ll));
+        const bypassedLine = L.polyline(geom, {
+          color: '#ea580c',
+          weight: 5.5,
+          dashArray: '8, 6',
+          opacity: 0.90,
         });
-      });
-
-      // 1. Draw Baseline Shortest-Path Route in Blue (Requirement: For shortest-path baseline: Blue)
-      const blueGlowBaseLine = L.polyline(allShortestLatLngs, {
-        color: '#1e40af', // Deep blue glow
-        weight: 8,
-        opacity: 0.75,
-        lineCap: 'round',
-        lineJoin: 'round',
-      });
-      const blueCoreBaseLine = L.polyline(allShortestLatLngs, {
-        color: '#2563eb', // Royal Blue baseline line
-        weight: 5,
-        opacity: 0.95,
-        dashArray: '8, 6',
-        lineCap: 'round',
-        lineJoin: 'round',
-      });
-      layerGroup.addLayer(blueGlowBaseLine);
-      layerGroup.addLayer(blueCoreBaseLine);
-
-      // Baseline line segments
-      shortestRoute.segments.forEach(segment => {
-        const segLatLngs: L.LatLngExpression[] = segment.edge.geometry.map(p => [p.lat, p.lng]);
-        const baselineDetailLine = L.polyline(segLatLngs, {
-          color: '#1d4ed8',
-          weight: 6,
-          opacity: 0.01, // Invisible click/hover target
-        });
-        layerGroup.addLayer(baselineDetailLine);
+        bypassedLine.bindTooltip(
+          `<div style="font-family: system-ui, sans-serif; font-size: 11px; font-weight: 700; color: #ea580c;">
+            🟧 Initial Route (Before Incident)
+          </div>`,
+          { direction: 'top', opacity: 0.96 }
+        );
+        layerGroup.addLayer(bypassedLine);
       });
     }
 
-    // 2. Draw Active Selected Route in Green (Requirement: For selected route: Green)
+    // 2. Draw Calculated Best Route (or Rerouted Path after incident) in Emerald Green
     if (optimalRoute && optimalRoute.segments.length > 0) {
-      const glowColor = '#047857'; // Deep emerald glow
-      const coreColor = '#10b981'; // Vibrant Green core
+      const isRerouteActive = Boolean(dynamicReroute?.isActive);
+      const glowColor = isRerouteActive ? '#065f46' : '#047857';
+      const coreColor = isRerouteActive ? '#10b981' : '#10b981';
 
       optimalRoute.segments.forEach(segment => {
         const segLatLngs: L.LatLngExpression[] = segment.edge.geometry.map(p => [p.lat, p.lng]);
@@ -431,9 +422,16 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         // Core bright line (GREEN for selected route)
         const routeLine = L.polyline(segLatLngs, {
           color: coreColor,
-          weight: 5,
+          weight: 5.5,
           opacity: 1.0,
         });
+
+        routeLine.bindTooltip(
+          `<div style="font-family: system-ui, sans-serif; font-size: 11px; font-weight: 700; color: #047857;">
+            ${isRerouteActive ? '🟩 Rerouted Path (After Incident)' : 'Optimal Route'}
+          </div>`,
+          { direction: 'top', opacity: 0.96 }
+        );
 
         layerGroup.addLayer(routeGlow);
         layerGroup.addLayer(routeLine);
@@ -751,7 +749,7 @@ export const MapComponent: React.FC<MapComponentProps> = ({
         }
       } catch {}
     }
-  }, [vertices, edges, optimalRoute, shortestRoute, startNode, destNode, dynamicReroute, vehicleType, simCoords, currentZoom, hasUserMovedMap, onEdgeClick, onNodeClick]);
+  }, [vertices, edges, optimalRoute, shortestRoute, startNode, destNode, dynamicReroute, vehicleType, simCoords, hasUserMovedMap, onEdgeClick, onNodeClick]);
 
   return (
     <div className="relative w-full h-[520px] bg-slate-100 border-2 border-slate-300 rounded-xl overflow-hidden shadow-xs">
@@ -831,53 +829,63 @@ export const MapComponent: React.FC<MapComponentProps> = ({
           </button>
         </div>
 
-        {/* Current Zoom Level Pill */}
-        <div className="bg-slate-900/80 backdrop-blur-xs text-white text-[11px] font-bold px-2 py-0.5 rounded-md shadow-xs">
-          Zoom: {currentZoom}x {currentZoom >= 13 ? '🔎 Street Level' : currentZoom >= 9 ? '🏙️ City Hub' : '🗺️ Regional'}
+        {/* Current Zoom Level Indicator */}
+        <div className="bg-white/95 backdrop-blur-xs border border-slate-300 text-slate-700 text-[11px] font-semibold px-2.5 py-1 rounded-md shadow-xs tabular-nums">
+          Zoom {currentZoom}× · {currentZoom >= 13 ? 'Street' : currentZoom >= 9 ? 'City' : 'Regional'}
         </div>
       </div>
 
       {/* Map Legend Overlay */}
-      <div className="absolute bottom-3 left-3 z-[1000] bg-white/95 backdrop-blur-xs border border-slate-300 rounded-xl p-2.5 text-xs shadow-lg max-w-[95vw] text-slate-800">
-        <div className="text-[11px] font-black uppercase tracking-wider text-slate-600 mb-1.5 border-b border-slate-200 pb-1 flex items-center justify-between">
-          <span>Road Conditions</span>
+      <div className="absolute bottom-3 left-3 z-[1000] bg-white/95 backdrop-blur-xs border border-slate-200 rounded-xl p-2.5 text-xs shadow-sm max-w-[95vw] text-slate-800">
+        <div className="text-[11px] font-semibold text-slate-600 mb-1.5 border-b border-slate-100 pb-1 flex items-center justify-between">
+          <span>Map Legend & Route Layers</span>
           {hasUserMovedMap && (
             <button
               type="button"
               onClick={handleResetFit}
-              className="text-[10px] font-bold text-blue-600 hover:text-blue-800 underline ml-2 cursor-pointer"
+              className="text-[10px] font-semibold text-blue-600 hover:text-blue-800 underline ml-2 cursor-pointer"
             >
               Reset View
             </button>
           )}
         </div>
         <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-x-3.5 gap-y-1.5 text-[11px]">
+          {dynamicReroute?.isActive && (
+            <>
+              <div className="flex items-center gap-1.5">
+                <span className="inline-block w-3.5 h-1.5 rounded-xs bg-orange-600 border border-orange-700"></span>
+                <span className="font-bold text-orange-900">Initial Route</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="inline-block w-3.5 h-1.5 rounded-xs bg-emerald-500 border border-emerald-600"></span>
+                <span className="font-bold text-emerald-900">Rerouted Path</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="inline-block w-2.5 h-2.5 rounded-full bg-red-600 animate-pulse"></span>
+                <span className="font-bold text-red-800">Incident / Affected Edge</span>
+              </div>
+            </>
+          )}
+          {!dynamicReroute?.isActive && (
+            <div className="flex items-center gap-1.5">
+              <span className="inline-block w-3.5 h-2 rounded-xs bg-emerald-500"></span>
+              <span className="font-semibold text-emerald-800">Optimal Route</span>
+            </div>
+          )}
           <div className="flex items-center gap-1.5">
-            <span className="inline-block w-2.5 h-2.5 rounded-full bg-amber-400"></span>
-            <span className="font-semibold text-amber-800">🟡 Moderate Congestion</span>
+            <span className="inline-block w-2 h-2 rounded-full bg-amber-400"></span>
+            <span className="text-slate-600">Moderate Traffic</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="inline-block w-2.5 h-2.5 rounded-full bg-orange-500"></span>
-            <span className="font-semibold text-orange-800">🟠 High Congestion</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="inline-block w-2.5 h-2.5 rounded-full bg-red-500"></span>
-            <span className="font-semibold text-red-800">🔴 High Risk</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="inline-block w-3.5 h-2 rounded-xs bg-emerald-500 shadow-xs"></span>
-            <span className="font-bold text-emerald-800">🟢 QPSO Selected Safer Route</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="inline-block w-3.5 h-1.5 rounded-xs bg-slate-900 border-b border-dashed border-slate-400"></span>
-            <span className="font-medium text-slate-700">⬛ Conventional Shortest Path</span>
+            <span className="inline-block w-2 h-2 rounded-full bg-red-500"></span>
+            <span className="text-slate-600">Blocked / Incident</span>
           </div>
           <div className="flex items-center gap-2 text-slate-600">
-            <span className="inline-flex items-center gap-1 font-semibold text-emerald-700">
-              <span className="w-2 h-2 rounded-full bg-emerald-600"></span> Start
+            <span className="inline-flex items-center gap-1 font-medium text-emerald-700">
+              <span className="w-2 h-2 rounded-full bg-emerald-600"></span> Origin
             </span>
-            <span className="inline-flex items-center gap-1 font-semibold text-blue-700">
-              <span className="w-2 h-2 rounded-full bg-blue-600"></span> Dest
+            <span className="inline-flex items-center gap-1 font-medium text-blue-700">
+              <span className="w-2 h-2 rounded-full bg-blue-600"></span> Destination
             </span>
           </div>
         </div>
